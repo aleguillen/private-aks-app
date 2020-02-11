@@ -20,8 +20,7 @@ The purpose of this sample is to create an end to end solution to connect to app
 
 This is a sample architecture. Let's break it down:
 
-#### Bastion Deployment
-  [/infra/terraform/bastion-net](https://github.com/aleguillen/private-aks-app/infra/terraform/bastion-net)
+### Bastion Deployment - [/infra/terraform/bastion-net](/infra/terraform/bastion-net)
 
 * Connects to on-premises via [Azure ExpressRoute](https://azure.microsoft.com/en-us/services/expressroute/) - this is not required or configured in this sample, however it's meant to show case the availability for access your private application from on-premises due to the ExpressRoute connection.
 * JumpServer VM - this server uses [Azure Bastion](https://azure.microsoft.com/en-us/services/azure-bastion/) to fully manage and connect via RDP and/or SSH privately fom the Azure portal.
@@ -30,19 +29,15 @@ This is a sample architecture. Let's break it down:
 * [Virtual Network Service Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) - allow you to secure Azure service resources to only your VNETs, all traffic from your VNETs to the Azure Service always remains on the Microsoft Azure backbone network. 
 * Private DNS Zone - it is responsible for translating a service name to its IP address, you can link a [Private DNS Zone](https://docs.microsoft.com/en-us/azure/dns/private-dns-overview) to a VNET to override and resolve specific domains. Alternatively, for **testing purposes** you can modify your Hosts file (etc/hosts) locally and map hostnames to IP address. For enterprise solutions, that already have a custom DNS server, you can add or modify your records to achive the same.
 
-### Private AKS Deployment
-  [/infra/terraform/bastion-net](https://github.com/aleguillen/private-aks-app\infra\terraform\private-aks)
+### Private AKS Deployment - [/infra/terraform/bastion-net](/infra/terraform/private-aks)
 
 * [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-intro) - managed, private Docker registry service based on Docker Registry 2.0. In this case we will be restricting access to ACR using virtual network firewall rules and service endpoints, for more information see [here](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-vnet)
 * [Private Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/private-clusters) - by using a private cluster with internal IP you can ensure that network traffic remains inside the network
 * [Private Link Service](https://docs.microsoft.com/en-us/azure/private-link/private-link-service-overview) - 
 
 
-## Application: [Azure Voting App](https://github.com/Azure-Samples/azure-voting-app-redis)
-  
-  [/app](https://github.com/aleguillen/private-aks-app/app)
+## Application: Azure Voting App - [/app](/app)
 
 This sample uses [Azure Voting App](https://github.com/Azure-Samples/azure-voting-app-redis) as our demo application. This application creates a multi-container application in an Azure Kubernetes Service (AKS) cluster. 
 
 To walk through a quick deployment of this application, see the AKS [quick start](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough?WT.mc_id=none-github-nepeters).
-
