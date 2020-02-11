@@ -16,7 +16,7 @@ The purpose of this sample is to create an end to end solution to connect to app
 
 ### Architecture 
 
-![alt text](https://github.com/aleguillen/private-aks-app/blob/master/images/Private-Cluster-Architecture.PNG)
+![alt text](/images/Private-Cluster-Architecture.PNG)
 
 This is a sample architecture. Let's break it down:
 
