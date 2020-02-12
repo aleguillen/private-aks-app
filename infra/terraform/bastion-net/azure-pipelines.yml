@@ -92,7 +92,7 @@ stages:
             buildType: 'current'
             downloadType: 'single'
             artifactName: 'infra'
-            downloadPath: '$(System.ArtifactsDirectory)/_artifacts'
+            downloadPath: '$(System.DefaultWorkingDirectory)/_artifacts'
 
         - task: AzureCLI@1
           displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
@@ -158,7 +158,7 @@ stages:
           displayName: 'Terraform : apply -auto-approve'
           inputs:
             command: apply
-            workingDirectory: '$(System.DefaultWorkingDirectory)/_Demo-Bastion-Infra-CI/infra/terraform'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra/terraform'
             commandOptions: '-auto-approve'
             environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
             backendServiceArm: ${{ variables.ado_service_connection_name }}
