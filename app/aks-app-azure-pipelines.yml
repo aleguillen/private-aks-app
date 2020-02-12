@@ -1,0 +1,122 @@
+# -----------------------------------------------------------------------------
+# .SYNOPSIS
+#   This is the main pipeline for Private AKS App Deployment. 
+#   The main pipeline will orchestrate the build and deploy to environments. 
+
+# .DESCRIPTION
+#   This pipeline will perform setup tasks for the image by:
+#   1. Docker Compose Build and Push to Azure Container Registry
+#   2. Find and replace token (variables) in .yaml files.
+#   3. Kubectl apply yaml
+
+# .ASSUMPTIONS:
+#     1. You are referencing this template from an ado pipeline
+
+# .NOTES
+#     File Name      : aks-app-azure-pipelines.yml
+#     Prerequisite   : ADO Multi-Stage Yaml Pipeline
+# -----------------------------------------------------------------------------
+
+name: AKS-App-$(Date:yyyyMMdd).$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    exclude:
+      - infra/*
+
+variables:
+  - group: aks_dev_vars
+  
+  - name: ado_agent_pool
+    value: 'UbuntuPrivatePool'
+  - name: ado_service_connection_name
+    value: 'Azure Subscription'
+
+stages: 
+  - stage: Build
+    displayName: Build  
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          name: ${{variables.ado_agent_pool }}
+        steps:
+        - task: DockerCompose@0
+          displayName: 'Run a Docker Compose - Build'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            azureContainerRegistry: '$(acr)'
+            dockerComposeFile: 'app/docker-compose.yaml'
+            dockerComposeFileArgs: |
+            TAG=$(environment)
+            REGISTRY=$(acr)
+            action: 'Build services'
+            additionalImageTags: '$(Build.BuildId)'
+            includeLatestTag: true
+
+        - task: DockerCompose@0
+          displayName: 'Run a Docker Compose - Push '
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            azureContainerRegistry: '$(acr)'
+            dockerComposeFile: 'app/docker-compose.yaml'
+            action: 'Push services'
+            additionalImageTags: '$(Build.BuildId)'
+            includeLatestTag: true
+
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publish Artifact: app'
+          inputs:
+            PathtoPublish: app
+            ArtifactName: app
+
+  - stage: dev
+    displayName: dev
+    jobs:
+      - job: Deploy
+        displayName: Deploy
+        pool:
+          name: ${{variables.ado_agent_pool }}
+        steps:   
+        - task: DownloadBuildArtifacts@0
+          inputs:
+            buildType: 'current'
+            downloadType: 'single'
+            artifactName: 'app'
+            downloadPath: '$(System.DefaultWorkingDirectory)/_artifacts'
+
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to get AKS credentials'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptLocation: inlineScript
+            inlineScript: 'az aks get-credentials -n $(aks_name) -g $(resource_group)'
+
+        - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+          displayName: 'Replace tokens in **/*.yaml'
+          inputs:
+            rootDirectory: '$(System.DefaultWorkingDirectory)/_artifact/app'
+            targetFiles: '**/*.yaml'
+            tokenPrefix: '${{'
+            tokenSuffix: '}}'
+
+        - task: KubectlInstaller@0
+          displayName: 'Install Kubectl latest'
+
+        - task: Kubernetes@1
+          displayName: 'kubectl apply'
+          inputs:
+            connectionType: 'Azure Resource Manager'
+            azureSubscriptionEndpoint: ${{ variables.ado_service_connection_name }}
+            azureResourceGroup: '$(resource_group)'
+            kubernetesCluster: '$(aks_name)'
+            namespace: default
+            command: apply
+            arguments: '-f $(System.DefaultWorkingDirectory)/_artifact/app/azure-vote-all-in-one-redis.yaml  --overwrite=true'
+            azureSubscriptionEndpointForSecrets: ${{ variables.ado_service_connection_name }}
+            azureContainerRegistry: '$(acr)'
+            secretName: 'acr-auth'
+

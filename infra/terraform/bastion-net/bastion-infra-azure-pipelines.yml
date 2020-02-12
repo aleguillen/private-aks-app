@@ -15,11 +15,11 @@
 #     1. You are referencing this template from an ado pipeline
 
 # .NOTES
-#     File Name      : azure-pipelines.yml
+#     File Name      : bastion-infra-azure-pipelines.yml
 #     Prerequisite   : ADO Multi-Stage Yaml Pipeline
 # -----------------------------------------------------------------------------
 
-name: Bastion-$(Date:yyyyMMdd).$(Rev:.r)
+name: Bastion-Infra-$(Date:yyyyMMdd).$(Rev:.r)
 
 trigger:
   branches:

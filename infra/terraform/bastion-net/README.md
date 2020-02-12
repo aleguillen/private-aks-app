@@ -85,5 +85,10 @@ az devops configure --defaults organization=https://dev.azure.com/your-organizat
 az login
 
 # Create Azure Pipeline
-az pipelines create --name 'Bastion.CI.CD' --yaml-path '/infra/terraform/bastion-net/azure-pipelines.yml'
+az pipelines create --name 'Bastion.Infra.CI.CD' --yaml-path '/infra/terraform/bastion-net/bastion-infra-azure-pipelines.yml'
+
+az pipelines create --name 'Private.AKS.Infra.CI.CD' --yaml-path '/infra/terraform/private-aks/aks-infra-azure-pipelines.yml'
+
+az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/infra/terraform/private-aks/aks-app-azure-pipelines.yml'
+
 ```
