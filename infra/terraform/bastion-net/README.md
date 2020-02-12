@@ -9,8 +9,20 @@
 
 ## Pre-requisites
 
-### Azure DevOps Configuration
-* Create a new project in [Azure DevOps](https://dev.azure.com/)
+### Azure CLI 
+* To install version 2.0.49 or newer, see [Install the Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli).
+
+```bash
+# Confirm AZ CLI installation
+az --version
+
+# Install and confirm Azure DevOps extension.
+az extension add --name azure-devops
+az extension show --name azure-devops
+```
+
+### Azure DevOps
+* Create a new project in [Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project)
 * Create a new [Agent Pool](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/pools-queues)
 ** Name: **UbuntuPrivatePool**
 ** Keep option **Grant access permission to all pipelines** checked.
@@ -24,14 +36,27 @@ Note: The Service connection name can be customized, just remember to update all
 ```
 
 ## How to run your Pipeline
-* [Clone/Import Git](https://docs.microsoft.com/en-us/azure/devops/repos/git/import-git-repository) repo into your Azure DevOps.
-* Customize variables *.azure-pipelines.yml file
+* [Import Git](https://docs.microsoft.com/en-us/azure/devops/repos/git/import-git-repository) repo into your Azure DevOps.
+** Git source Url: https://github.com/aleguillen/private-aks-app.git
+* Clone imported repo in your local computer, for more info see [here](https://docs.microsoft.com/en-us/azure/devops/repos/git/clone).
+* Customize variables section in file [/infra/terraform/bastion-net/azure-pipelines.yml](/infra/terraform/bastion-net/azure-pipelines.yml) and push your changes to your new repository.
 ** Use the right agent pool: **ado_agent_pool: 'Azure Pipelines'**
-** Use the right Service Connection: **ado_service_connection_name: 'Azure Subscription'**
+** Use the right service connection: **ado_service_connection_name: 'Azure Subscription'**
 ** Set your Azure resources prefix: **prefix: alebastion**
 ** Set a globally unique name to your Terraform State Storage Account: **terraformstorageaccount: tfalebastiondevsa**
 ** Set VMs username: **vm_username: vmadmin**
 * Replace secret variables manually, look for: **ThisValueWillBeSetManually**. For more information on how to set secret variables see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables).
-* Run your pipeline
+* [Create a Pipeline from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli)
+
+```bash
+# Make sure your Azure DevOps defaults include the organization and project from the command prompt
+az devops configure --defaults organization=https://dev.azure.com/your-organization project=your-project
+
+# Sign in to the Azure CLI
+az login
+
+# Create Azure Pipeline
+az pipelines create --name 'Bastion.CI.CD' --yaml-path '/infra/terraform/bastion-net/azure-pipelines.yml'
+```
 
 
