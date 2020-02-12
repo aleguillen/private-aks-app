@@ -72,7 +72,40 @@ az pipelines variable-group variable create \
 --group-id $VAR_GROUP_ID \
 --secret true \
 --name 'vm_password' \
---value 'DevOps!01'
+--value '<replace-me>'
+
+az pipelines variable-group variable create \
+--group-id $VAR_GROUP_ID \
+--secret true \
+--name 'ado_pat_token' \
+--value '<replace-me>'
+
+
+
+az pipelines variable-group create \
+--name aks_dev_vars \
+--authorize true \
+--variables \
+environment='dev' \
+location='eastus2' \
+prefix='alepvtaks' \
+resource_group='$(prefix)-$(environment)-rg' \
+storagekey='PipelineWillGetThisValueRuntime' \
+terraformstorageaccount='tfalepvtaksdevsa' \
+terraformstoragerg='tf-$(prefix)-$(environment)-rg' \
+acr_name='$(prefix)$(environment)acr' \
+acr='$(acr_name).azurecr.io' \
+aks_name='$(prefix)-$(environment)-aks' \
+aks_service_principal_client_id='e6c4ab13-f3b3-4f0d-9c1e-ed97d0996527' \
+ado_subnet_id='/subscriptions/5202ea18-a138-47f1-a47a-0a24613a45f4/resourceGroups/alebastion-dev-rg/providers/Microsoft.Network/virtualNetworks/alebastion-dev-vnet/subnets/devops'
+
+# Create Variable Secret
+VAR_GROUP_ID=$(az pipelines variable-group list --group-name aks_dev_vars --top 1 --query "[0].id" -o tsv)
+az pipelines variable-group variable create \
+--group-id $VAR_GROUP_ID \
+--secret true \
+--name 'aks_service_principal_client_secret' \
+--value '<replace-me>'
 ```
 
 * [Create a Pipeline from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli)

@@ -30,8 +30,8 @@ trigger:
       - infra/terraform/private-aks/*
 
 variables:
-  - group: bastion_dev_vars
-  
+  - group: aks_dev_vars
+
   - name: ado_agent_pool
     value: 'UbuntuPrivatePool'
   - name: ado_service_connection_name
