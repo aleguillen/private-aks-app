@@ -94,12 +94,12 @@ stages:
             artifactName: 'infra'
             downloadPath: '$(System.ArtifactsDirectory)/_artifacts'
 
-          - task: AzureCLI@1
-            displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
-            inputs:
-              azureSubscription: ${{ variables.ado_service_connection_name }}
-              scriptLocation: inlineScript
-              inlineScript: |
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptLocation: inlineScript
+            inlineScript: |
               # this will create Azure resource group
               az group create --location $(location) --name $(terraformstoragerg)
               
