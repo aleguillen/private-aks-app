@@ -39,13 +39,44 @@ Note: The Service connection name can be customized, just remember to update all
 * [Import Git](https://docs.microsoft.com/en-us/azure/devops/repos/git/import-git-repository) repo into your Azure DevOps.
 ** Git source Url: https://github.com/aleguillen/private-aks-app.git
 * Clone imported repo in your local computer, for more info see [here](https://docs.microsoft.com/en-us/azure/devops/repos/git/clone).
-* Customize variables section in file [/infra/terraform/bastion-net/azure-pipelines.yml](/infra/terraform/bastion-net/azure-pipelines.yml) and push your changes to your new repository.
-** Use the right agent pool: **ado_agent_pool: 'Azure Pipelines'**
-** Use the right service connection: **ado_service_connection_name: 'Azure Subscription'**
-** Set your Azure resources prefix: **prefix: alebastion**
-** Set a globally unique name to your Terraform State Storage Account: **terraformstorageaccount: tfalebastiondevsa**
-** Set VMs username: **vm_username: vmadmin**
-* Replace secret variables manually, look for: **ThisValueWillBeSetManually**. For more information on how to set secret variables see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables).
+* Configure Azure DevOps CLI
+```bash
+# Make sure your Azure DevOps defaults include the organization and project from the command prompt
+az devops configure --defaults organization=https://dev.azure.com/your-organization project=your-project
+
+# Sign in to the Azure CLI
+az login
+```
+* Create Variable group: **bastion_dev_vars**. Replace variables with your own values like: prefix, terraformstorageaccount, ado_pool_name, vm_username.
+```bash
+# Create Variable group with non-secret variables
+az pipelines variable-group create \
+--name bastion_dev_vars \
+--authorize true \
+--variables \
+ado_agent_pool='Azure Pipelines' \
+ado_service_connection_name='Azure Subscription' \
+environment='dev' \
+location='eastus2' \
+prefix='alebastion' \
+resource_group='$(prefix)-$(environment)-rg' \
+storagekey='PipelineWillGetThisValueRuntime' \
+terraformstorageaccount='tfalebastiondevsa' \
+terraformstoragerg='tf-$(prefix)-$(environment)-rg' \
+vm_username='vmadmin' \
+ado_pool_name='UbuntuPrivatePool' \
+ado_server_url='$(System.TeamFoundationCollectionUri)' \
+ado_pat_token='$(System.AccessToken)'
+
+# Create Variable Secret
+VAR_GROUP_ID=$(az pipelines variable-group list --group-name bastion_dev_vars --top 1 --query "[0].id" -o tsv)
+az pipelines variable-group variable create \
+--group-id $VAR_GROUP_ID \
+--secret true \
+--name 'vm_password' \
+--value 'DevOps!01'
+```
+
 * [Create a Pipeline from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli)
 
 ```bash
@@ -58,5 +89,3 @@ az login
 # Create Azure Pipeline
 az pipelines create --name 'Bastion.CI.CD' --yaml-path '/infra/terraform/bastion-net/azure-pipelines.yml'
 ```
-
-

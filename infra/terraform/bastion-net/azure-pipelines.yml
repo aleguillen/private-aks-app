@@ -30,35 +30,8 @@ trigger:
       - infra/terraform/bastion-net/*
 
 variables:
-  - name: ado_agent_pool
-    value: 'Azure Pipelines'
-  - name: ado_service_connection_name
-    value: 'Azure Subscription'
-  - name: environment
-    value: dev
-  - name: location
-    value: eastus2
-  - name: prefix
-    value: alebastion
-  - name: resource_group
-    value: $(prefix)-$(environment)-rg
-  - name: storagekey
-    value: PipelineWillGetThisValueRuntime
-  - name: terraformstorageaccount
-    value: tfalebastiondevsa
-  - name: terraformstoragerg
-    value: tf-$(prefix)-$(environment)-rg
-  - name: vm_username
-    value: vmadmin
-  - name: vm_password
-    value: DevOps!01
-  - name: ado_pool_name
-    value: UbuntuPrivatePool
-  - name: ado_server_url
-    value: $(System.TeamFoundationCollectionUri)
-  - name: ado_pat_token
-    value: $(System.AccessToken)
-
+  - group: bastion_dev_vars
+  
 stages: 
   - stage: Build
     displayName: Build  
