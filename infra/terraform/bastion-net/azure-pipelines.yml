@@ -70,7 +70,7 @@ stages:
         - task: AzureCLI@1
           displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
           inputs:
-            azureSubscription: ${{ variables.ado_service_connection_name }}
+            azureSubscription: $(ado_service_connection_name)
             scriptLocation: inlineScript
             inlineScript: |
               # this will create Azure resource group
