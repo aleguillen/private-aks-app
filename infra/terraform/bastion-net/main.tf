@@ -186,7 +186,7 @@ resource "azurerm_network_interface" "ado" {
 
 # ADO Configuration
 data "template_file" "cloudinit" {
-  template = file("${path.root}/scripts/cloudinit.tpl")
+  template = file("${path.module}/scripts/cloudinit.tpl")
 
   vars = {
     server_url = var.ado_server_url
