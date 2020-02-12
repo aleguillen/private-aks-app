@@ -24,6 +24,7 @@ Note: The Service connection name can be customized, just remember to update all
 ```
 
 ## How to run your Pipeline
+* [Clone/Import Git](https://docs.microsoft.com/en-us/azure/devops/repos/git/import-git-repository) repo into your Azure DevOps.
 * Customize variables *.azure-pipelines.yml file
 ** Use the right agent pool: **ado_agent_pool: 'Azure Pipelines'**
 ** Use the right Service Connection: **ado_service_connection_name: 'Azure Subscription'**
