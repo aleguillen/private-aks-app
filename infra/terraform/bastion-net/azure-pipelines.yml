@@ -66,7 +66,7 @@ stages:
       - job: Build
         displayName: Build
         pool:
-          name: ${{ variables.ado_agent_pool }}
+          vmImage: ubuntu-18.04
         steps:
         - task: CopyFiles@2
           displayName: 'Copy Files to: $(build.artifactstagingdirectory)/terraform'
@@ -85,7 +85,7 @@ stages:
       - job: Deploy
         displayName: Deploy
         pool:
-          name: ${{ variables.ado_agent_pool }}
+          vmImage: ubuntu-18.04
         steps:   
         - task: DownloadBuildArtifacts@0
           inputs:
