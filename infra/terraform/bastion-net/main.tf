@@ -212,11 +212,6 @@ resource "azurerm_virtual_machine" "ado" {
   vm_size               = "Standard_DS1_v2"
 
   storage_image_reference {
-    # publisher = "RedHat"
-    # offer     = "RHEL"
-    # sku       = "7-RAW-CI"
-    # version   = "7.6.2019072418"
-
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "18.04-LTS"
