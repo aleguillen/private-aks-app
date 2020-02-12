@@ -54,8 +54,6 @@ az pipelines variable-group create \
 --name bastion_dev_vars \
 --authorize true \
 --variables \
-ado_agent_pool='Azure Pipelines' \
-ado_service_connection_name='Azure Subscription' \
 environment='dev' \
 location='eastus2' \
 prefix='alebastion' \

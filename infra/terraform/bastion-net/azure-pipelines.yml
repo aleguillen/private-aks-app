@@ -32,6 +32,11 @@ trigger:
 variables:
   - group: bastion_dev_vars
   
+  - name: ado_agent_pool
+    value: 'Azure Pipelines'
+  - name: ado_service_connection_name
+    value: 'Azure Subscription'
+
 stages: 
   - stage: Build
     displayName: Build  
@@ -70,7 +75,7 @@ stages:
         - task: AzureCLI@1
           displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
           inputs:
-            azureSubscription: $(ado_service_connection_name)
+            azureSubscription: ${{ variables.ado_service_connection_name }}
             scriptLocation: inlineScript
             inlineScript: |
               # this will create Azure resource group
