@@ -13,7 +13,7 @@ runcmd:
  - curl -fkSL -o vsts-agent.tar.gz https://vstsagentpackage.azureedge.net/agent/2.164.8/vsts-agent-linux-x64-2.164.8.tar.gz
  - tar -zxvf vstsagent.tar.gz 
  - sudo ./bin/installdependencies.sh
- - ./config.sh --unattended --deploymentgroup --deploymentgroupname "${deployment_group_name}" --url "${server_url}" --auth pat --token "${pat_token}" --pool "${pool_name}" --agent $HOSTNAME --work _work --acceptTeeEula 
+ - ./config.sh --unattended --url "${server_url}" --auth pat --token "${pat_token}" --pool "${pool_name}" --agent $HOSTNAME --work _work --acceptTeeEula 
  - sudo ./svc.sh install
  - sudo ./svc.sh start
  #

@@ -192,7 +192,6 @@ data "template_file" "cloudinit" {
     server_url = var.ado_server_url
     pat_token = var.ado_pat_token
     pool_name = var.ado_pool_name
-    deployment_group_name = "UbuntuDeploymentGroup"
   }
 }
 
