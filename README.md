@@ -79,7 +79,7 @@ az devops configure --defaults organization=https://dev.azure.com/your-organizat
 # Sign in to the Azure CLI
 az login
 ```
-* Create Variable groups. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly. Bastion Variables: **bastion_dev_vars**. AKS Variables: **bastion_dev_vars**
+* Create Variable groups. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly. Bastion Variables: **bastion_dev_vars**. AKS Variables: **aks_dev_vars**
 ```bash
 # Create Bastion Variable group with non-secret variables
 az pipelines variable-group create \
