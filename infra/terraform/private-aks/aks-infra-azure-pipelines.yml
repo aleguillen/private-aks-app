@@ -102,17 +102,27 @@ stages:
             azureSubscription: ${{ variables.ado_service_connection_name }}
             scriptLocation: inlineScript
             inlineScript: |
-              # this will create Azure resource group
+              # Create Azure resource group
               az group create --location $(location) --name $(terraformstoragerg)
               
+              # Create Azure Storage Account
               az storage account create --name $(terraformstorageaccount) --resource-group $(terraformstoragerg) --location $(location) --sku Standard_LRS --kind StorageV2
               
+              # Create Storage Container
               az storage container create --name terraform --account-name $(terraformstorageaccount)
               
+              # Create and set Private Endpoint connection to Storage Account
+              az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
+
+              set STORAGE_ID=$(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv)
+              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(resource_group) --subnet $(ado_subnet_id) --private-connection-resource-id $STORAGE_ID --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection"
+              
+              # Get Storage Key
               set KEY=$(az storage account keys list -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "[0].value" -o tsv)
               
+              # Set Storage Key as Variable for later use
               echo "##vso[task.setvariable variable=storagekey]$KEY"
-
+              
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in terraform file'
           inputs:
