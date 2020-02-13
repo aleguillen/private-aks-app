@@ -93,7 +93,7 @@ resource "azurerm_public_ip" "bastion" {
 }
 
 resource "azurerm_bastion_host" "bastion" {
-  name                = "bastion-vm"
+  name                = "bastion-host"
   location            = azurerm_resource_group.bastion.location
   resource_group_name = azurerm_resource_group.bastion.name
 
@@ -159,7 +159,7 @@ resource "azurerm_virtual_machine" "bastion" {
   tags = merge(
     local.common_tags, 
     {
-        display_name = "Bastion VM"
+        display_name = "JumpServer VM"
     }
   )
 }
@@ -192,6 +192,7 @@ data "template_file" "cloudinit" {
     server_url = var.ado_server_url
     pat_token = var.ado_pat_token
     pool_name = var.ado_pool_name
+    deployment_group_name = "UbuntuDeploymentGroup"
   }
 }
 
@@ -200,6 +201,7 @@ data "template_cloudinit_config" "config" {
   base64_encode = true
 
   part {
+    content_type = "text/cloud-config"
     content = data.template_file.cloudinit.rendered
   }
 }
@@ -236,6 +238,8 @@ resource "azurerm_virtual_machine" "ado" {
 
   os_profile_linux_config {
     disable_password_authentication = false
+
+    ## For Production environments use SSH instead of Password authentication.
     # ssh_keys {
     #   path     = "/home/${var.admin_username}/.ssh/authorized_keys"
     #   key_data = length(var.ssh_key_path) > 0 ? file(var.ssh_key_path) : var.ssh_key_data
@@ -249,9 +253,9 @@ resource "azurerm_virtual_machine" "ado" {
     }
   )
 
-  lifecycle {
-    ignore_changes = [ 
-      os_profile
-    ]
-  }
+  # lifecycle {
+  #   ignore_changes = [ 
+  #     os_profile
+  #   ]
+  # }
 }
