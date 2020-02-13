@@ -55,21 +55,21 @@ To walk through a quick deployment of this application, see the AKS [quick start
 ### Azure DevOps Configuration 
 * [Login](https://dev.azure.com) into your Azure DevOps Organization.
 * Create a new project in Azure DevOps, for information see [here](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project).
-** Sample name: **private-aks-app**
+    * Sample name: **private-aks-app**
 * Create a new Agent Pool in your project, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/pools-queues)
-** Name: **UbuntuPrivatePool**
-** Keep option **Grant access permission to all pipelines** checked.
+    * Name: **UbuntuPrivatePool**
+    * Keep option **Grant access permission to all pipelines** checked.
 * Create a new Azure Service Connection to your Azure Subscription, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints)
-** Connection type: **Azure Resource Manager**.
-** Authentication Method: **Service Principal (automatic)** - thisoption will automatically create the Service Principal on your behalf, if you don't have permissions to create a Service Principal please use the manual option.
-** Scope level: Select the appropiate level, for this demo I used **Subscription**.
-** Service connection name: **Azure Subscription**.
-```
-Note: The Service connection name can be customized, just remember to update all azure-pipelines.yml files to use the right Service Connection name in the variables section.
-```
+    * Connection type: **Azure Resource Manager**.
+    * Authentication Method: **Service Principal (automatic)** - thisoption will automatically create the Service Principal on your behalf, if you don't have permissions to create a Service Principal please use the manual option.
+    * Scope level: Select the appropiate level, for this demo I used **Subscription**.
+    * Service connection name: **Azure Subscription**.
+
+**Note: The Service connection name can be customized, just remember to update all azure-pipelines.yml files to use the right Service Connection name in the variables section.**
+
 * Create a Personal Access Token (PAT token), we will use this token to configure the Self Hosted Agent for Azure DevOps. For more information on how to create a PAT token see [here](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate)
 * [Import Git](https://docs.microsoft.com/en-us/azure/devops/repos/git/import-git-repository) repo into your Azure DevOps project.
-** Git source Url: https://github.com/aleguillen/private-aks-app.git
+    * Git source Url: https://github.com/aleguillen/private-aks-app.git
 * (Optional) Clone imported repo in your local computer, for more info see [here](https://docs.microsoft.com/en-us/azure/devops/repos/git/clone).
 * Configure Azure DevOps CLI
 ```bash
@@ -80,7 +80,7 @@ az devops configure --defaults organization=https://dev.azure.com/your-organizat
 az login
 ```
 * Create Variable groups. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly.
-** Bastion Varirables: **bastion_dev_vars**. 
+    * Bastion Variables: **bastion_dev_vars**. 
 ```bash
 # Create Variable group with non-secret variables
 az pipelines variable-group create \
@@ -112,7 +112,7 @@ az pipelines variable-group variable create \
 --name 'ado_pat_token' \
 --value '<replace-me>'
 ```
-** AKS Varirables: **aks_dev_vars**. 
+    * AKS Variables: **aks_dev_vars**. 
 ```bash
 az pipelines variable-group create \
 --name aks_dev_vars \
@@ -149,5 +149,5 @@ az pipelines create --name 'Private.AKS.Infra.CI.CD' --yaml-path '/infra/terrafo
 ```
 * Create AKS App Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
-az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/infra/terraform/private-aks/aks-app-azure-pipelines.yml'
+az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/app/aks-app-azure-pipelines.yml'
 ```
