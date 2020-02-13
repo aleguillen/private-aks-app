@@ -81,6 +81,7 @@ az login
 ```
 * Create Variable groups. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly.
     * Bastion Variables: **bastion_dev_vars**. 
+    
 ```bash
 # Create Variable group with non-secret variables
 az pipelines variable-group create \
@@ -112,7 +113,9 @@ az pipelines variable-group variable create \
 --name 'ado_pat_token' \
 --value '<replace-me>'
 ```
+
     * AKS Variables: **aks_dev_vars**. 
+
 ```bash
 az pipelines variable-group create \
 --name aks_dev_vars \
