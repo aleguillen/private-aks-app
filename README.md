@@ -52,7 +52,7 @@ This sample uses [Azure Voting App](https://github.com/Azure-Samples/azure-votin
 To walk through a quick deployment of this application, see the AKS [quick start](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough?WT.mc_id=none-github-nepeters).
 
 
-### Azure DevOps Configuration 
+## Azure DevOps Configuration 
 * [Login](https://dev.azure.com) into your Azure DevOps Organization.
 * Create a new project in Azure DevOps, for information see [here](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project).
     * Sample name: **private-aks-app**
@@ -79,11 +79,9 @@ az devops configure --defaults organization=https://dev.azure.com/your-organizat
 # Sign in to the Azure CLI
 az login
 ```
-* Create Variable groups. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly.
-    * Bastion Variables: **bastion_dev_vars**. 
-
+* Create Variable groups. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly. Bastion Variables: **bastion_dev_vars**. AKS Variables: **bastion_dev_vars**
 ```bash
-# Create Variable group with non-secret variables
+# Create Bastion Variable group with non-secret variables
 az pipelines variable-group create \
 --name bastion_dev_vars \
 --authorize true \
@@ -112,11 +110,10 @@ az pipelines variable-group variable create \
 --secret true \
 --name 'ado_pat_token' \
 --value '<replace-me>'
-
 ```
 
-    * AKS Variables: **aks_dev_vars**. 
 ```bash
+# Create AKS Variable group with non-secret variables
 az pipelines variable-group create \
 --name aks_dev_vars \
 --authorize true \
@@ -141,6 +138,7 @@ az pipelines variable-group variable create \
 --secret true \
 --name 'aks_service_principal_client_secret' \
 --value '<replace-me>'
+
 ```
 * Create Bastion Infra Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
