@@ -232,7 +232,7 @@ resource "azurerm_private_dns_zone" "privatedns" {
   resource_group_name = var.pe_rg_name
 }
 
-resource "azurerm_dns_a_record" "record" {
+resource "azurerm_private_dns_a_record" "record" {
   name                = split(".",azurerm_kubernetes_cluster.k8s.private_fqdn)[0]
   zone_name           = azurerm_private_dns_zone.privatedns.name
   resource_group_name = var.pe_rg_name
