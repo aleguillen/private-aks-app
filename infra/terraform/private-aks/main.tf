@@ -242,7 +242,7 @@ resource "azurerm_private_dns_a_record" "record" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "example" {
   name                  = local.aks_private_dns_link_name
-  resource_group_name = azurerm_resource_group.k8s.name
+  resource_group_name   = var.pe_rg_name
   private_dns_zone_name = azurerm_private_dns_zone.privatedns.name
   virtual_network_id    = data.azurerm_virtual_network.pe.id
 }
