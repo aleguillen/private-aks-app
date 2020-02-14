@@ -40,7 +40,7 @@ runcmd:
  - sudo chmod +x /usr/local/bin/docker-compose
 
 power_state:
- delay: "+30"
+ delay: "+1"
  mode: reboot
  message: Rebooting after ADO configuration
  timeout: 30
