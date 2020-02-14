@@ -237,7 +237,7 @@ resource "azurerm_dns_a_record" "record" {
   zone_name           = azurerm_private_dns_zone.privatedns.name
   resource_group_name = var.pe_rg_name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.pe.private_service_connection.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.pe.private_service_connection.0.private_ip_address]
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "example" {
