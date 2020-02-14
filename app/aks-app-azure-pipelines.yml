@@ -107,6 +107,11 @@ stages:
           displayName: Helm installer 3.1.0
           inputs: 
             helmVersionToInstall: 3.1.0
+        - task: Bash@3
+          displayName: 'Bash Script to Add Helm repos'
+          inputs:
+            targetType: 'inline'
+            script: helm repo update
 
         - task: HelmDeploy@0
           displayName: Helm install NGINX
