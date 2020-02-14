@@ -121,7 +121,7 @@ stages:
             azureSubscriptionEndpoint: ${{ variables.ado_service_connection_name }}
             azureResourceGroup: '$(resource_group)'
             kubernetesCluster: '$(aks_name)'
-            command: install
+            command: upgrade
             releaseName: nginx-ingress
             chartType: 'Name'
             chartName: 'stable/nginx-ingress'
