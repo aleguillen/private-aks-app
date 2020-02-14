@@ -9,12 +9,12 @@ runcmd:
  # Create Folder under Home/User directory
  #
  - mkdir azagent; cd azagent
- - echo "[$(date +%F_%T)] Starting cloud_init script" >> ./ado_cloud_init.log
+ - echo "[$(date +%F_%T)] Starting cloud_init script" # >> ./ado_cloud_init.log
  #
  # Downloding and installing VSTS agent package
  #
  - curl -fkSL -o vsts-agent.tar.gz https://vstsagentpackage.azureedge.net/agent/2.164.8/vsts-agent-linux-x64-2.164.8.tar.gz
- - tar -zxvf vstsagent.tar.gz 
+ - tar -zxvf vsts-agent.tar.gz 
  - sudo ./bin/installdependencies.sh
  - ./config.sh --unattended --url "${server_url}" --auth pat --token "${pat_token}" --pool "${pool_name}" --agent $HOSTNAME --work _work --acceptTeeEula 
  - sudo ./svc.sh install
@@ -27,9 +27,9 @@ runcmd:
  # Install Docker
  #
  - sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
- - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs)  stable"
  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
  - sudo apt-key fingerprint 0EBFCD88
+ - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs)  stable"
  - sudo usermod -aG docker $USER
  - sudo systemctl enable docker
  - sudo systemctl start docker
