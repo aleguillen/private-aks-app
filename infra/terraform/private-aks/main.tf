@@ -125,7 +125,8 @@ resource "azurerm_kubernetes_cluster" "k8s" {
     name       = "default"
     node_count = local.aks_node_count
     vm_size    = "Standard_D2_v3"
-
+    availability_zones = [1, 2, 3]
+    
     vnet_subnet_id = azurerm_subnet.default.id
   }
 
