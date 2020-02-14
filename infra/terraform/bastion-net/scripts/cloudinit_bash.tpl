@@ -26,7 +26,7 @@ cd azagent
 
 curl -fkSL -o vsts-agent.tar.gz https://vstsagentpackage.azureedge.net/agent/2.164.8/vsts-agent-linux-x64-2.164.8.tar.gz
 
-sudo chmod o+w -R ./azagent
+sudo chmod o+w -R /azagent/
 
 sudo ./bin/installdependencies.sh
 

@@ -51,11 +51,11 @@ stages:
             azureContainerRegistry: '$(acr)'
             dockerComposeFile: 'app/docker-compose.yaml'
             dockerComposeFileArgs: |
-            TAG=$(environment)
-            REGISTRY=$(acr)
-            action: 'Build services'
-            additionalImageTags: '$(Build.BuildId)'
-            includeLatestTag: true
+              TAG=$(environment)
+              REGISTRY=$(acr)
+              action: 'Build services'
+              additionalImageTags: '$(Build.BuildId)'
+              includeLatestTag: true
 
         - task: DockerCompose@0
           displayName: 'Run a Docker Compose - Push '

@@ -115,7 +115,8 @@ stages:
               az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
 
               set STORAGE_ID=$(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv)
-              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(resource_group) --subnet $(ado_subnet_id) --private-connection-resource-id $STORAGE_ID --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection"
+              
+              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $STORAGE_ID --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false
               
               # Get Storage Key
               set KEY=$(az storage account keys list -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "[0].value" -o tsv)

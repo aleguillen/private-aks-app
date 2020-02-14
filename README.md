@@ -150,5 +150,5 @@ az pipelines create --name 'Private.AKS.Infra.CI.CD' --yaml-path '/infra/terrafo
 ```
 * Create AKS App Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
-az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/app/aks-app-azure-pipelines.yml'
+az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/app/aks-app-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
 ```
