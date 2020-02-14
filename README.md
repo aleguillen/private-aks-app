@@ -151,11 +151,11 @@ az pipelines variable-group variable create \
 ```
 * Create Bastion Infra Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
-az pipelines create --name 'Bastion.Infra.CI.CD' --yaml-path '/infra/terraform/bastion-net/bastion-infra-azure-pipelines.yml'
+az pipelines create --name 'Bastion.Infra.CI.CD' --yaml-path '/infra/terraform/bastion-net/bastion-infra-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
 ```
 * Create AKS Infra Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
-az pipelines create --name 'Private.AKS.Infra.CI.CD' --yaml-path '/infra/terraform/private-aks/aks-infra-azure-pipelines.yml'
+az pipelines create --name 'Private.AKS.Infra.CI.CD' --yaml-path '/infra/terraform/private-aks/aks-infra-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
 ```
 * Create AKS App Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
