@@ -211,4 +211,4 @@ stages:
 
               az network private-dns zone create -g $(resource_group) -n $(dns_zone_name)
               az network private-dns record-set a add-record -g $(resource_group) -z $(dns_zone_name) -n $(dns_a_record_name) -a $(aks_pe_a_record_value)
-              az network private-dns link vnet create -g $(resource_group) -n $DNS_LINK_NAME -z $(dns_zone_name) -v $VNET_NAME -e true
+              az network private-dns link vnet create -g $(resource_group) -n "$(bastion_vnet_name)-dns-link" -z $(dns_zone_name) -v $(bastion_vnet_name) -e true

@@ -24,6 +24,8 @@ trigger:
     include:
     - master
   paths:
+    include:
+      - app/*
     exclude:
       - infra/*
 

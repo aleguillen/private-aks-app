@@ -137,7 +137,8 @@ dns_a_record_name='PipelineWillGetThisValueRuntime' \
 aks_pe_nic_id='PipelineWillGetThisValueRuntime' \
 aks_pe_a_record_value='PipelineWillGetThisValueRuntime' \
 aks_service_principal_client_id='<replace-me>' \
-ado_subnet_id='<replace-me>' 
+ado_subnet_id='<replace-me>' \
+bastion_vnet_name='<replace-me>' 
 
 
 # Create Variable Secret
