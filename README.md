@@ -122,6 +122,7 @@ environment='dev' \
 location='eastus2' \
 prefix='samplepvtaks' \
 resource_group='$(prefix)-$(environment)-rg' \
+vnet_name='$(prefix)-$(environment)-vnet' \
 storagekey='PipelineWillGetThisValueRuntime' \
 terraformstorageaccount='tf$(prefix)$(environment)sa' \
 terraformstoragerg='tf-$(prefix)-$(environment)-rg' \
@@ -129,7 +130,7 @@ acr_name='$(prefix)$(environment)acr' \
 acr='$(acr_name).azurecr.io' \
 aks_name='$(prefix)-$(environment)-aks' \
 aks_service_principal_client_id='<replace-me>' \
-ado_subnet_id='<replace-me>'
+ado_subnet_id='<replace-me>' 
 
 # Create Variable Secret
 VAR_GROUP_ID=$(az pipelines variable-group list --group-name aks_dev_vars --top 1 --query "[0].id" -o tsv)

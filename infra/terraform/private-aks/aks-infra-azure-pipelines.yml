@@ -179,3 +179,27 @@ stages:
             backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
             backendAzureRmContainerName: terraform
             backendAzureRmKey: terraform.tfstate
+
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to deploy Private Endpoint and Private DNS Zone'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptLocation: inlineScript
+            inlineScript: |
+              set AKS_ID=$(az aks show --name $(aks_name) --resource-group $(resource_group) --query 'id' -o tsv)
+              set AKS_NODE_RG_NAME=$(az aks show --name $(aks_name)  --resource-group $(resource_group) --query 'nodeResourceGroup' -o tsv) 
+
+              az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
+              az network private-endpoint create --name $PE_NAME --resource-group $(resource_group) --subnet $SUBNET_ID --private-connection-resource-id $AKS_ID --group-ids management --connection-name $PE_CONNECTION_NAME
+
+              az network private-endpoint create --name "$(aks_name)-pe" --resource-group $(resource_group) --subnet $(ado_subnet_id) --private-connection-resource-id $AKS_ID --group-ids management --connection-name "$(aks_name)-aksconnection" --manual-request false
+              
+              # Setting Private DNS Zone on Bastion VNET
+              set DNS_ZONE_NAME=$(az network private-dns zone list -g $AKS_NODE_RG_NAME --query "[0].name" -o tsv)
+              set A_RECORD_NAME=$(az network private-dns record-set list -g $AKS_NODE_RG_NAME -z $DNS_ZONE_NAME --query "[?type == 'Microsoft.Network/privateDnsZones/A'].name" -o tsv)
+              set PE_NIC_ID=$(az network private-endpoint show --name "$(aks_name)-pe" --resource-group $(resource_group) --query "networkInterfaces[0].id" -o tsv)
+              set A_RECORD_VALUE=$(az network nic show --ids $PE_NIC_ID --query "ipConfigurations[?name=='privateEndpointIpConfig'].privateIpAddress" -o tsvprivateIpAddress)
+
+              az network private-dns zone create -g $(resource_group) -n $DNS_ZONE_NAME
+              az network private-dns record-set a add-record -g $(resource_group) -z $DNS_ZONE_NAME -n $A_RECORD_NAME -a $A_RECORD_VALUE
+              az network private-dns link vnet create -g $(resource_group) -n $DNS_LINK_NAME -z $DNS_ZONE_NAME -v $VNET_NAME -e true
