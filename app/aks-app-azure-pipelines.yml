@@ -103,6 +103,22 @@ stages:
             tokenPrefix: '${__'
             tokenSuffix: '__}'
 
+        - task: HelmInstaller@1
+          displayName: Helm installer
+          inputs: 
+            helmVersionToInstall: latest
+
+        - task: HelmDeploy@0
+          displayName: Helm install
+          inputs:
+            azureSubscriptionEndpoint: ${{ variables.ado_service_connection_name }}
+            azureResourceGroup: '$(resource_group)'
+            kubernetesCluster: '$(aks_name)'
+            command: install
+            chartType: nginx-ingress
+            chartName: stable/nginx-ingress
+            arguments: '-f $(System.DefaultWorkingDirectory)/_artifacts/app/internal-ingress.yaml  --set controller.replicaCount=2  --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux'
+            
         - task: KubectlInstaller@0
           displayName: 'Install Kubectl latest'
 
