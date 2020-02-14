@@ -165,35 +165,103 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   )
 }
 
-# resource "azurerm_role_assignment" "acr" {
-#   scope                = azurerm_container_registry.acr.id
-#   role_definition_name = "acrpull"
-#   principal_id         = var.aks_service_principal_client_id
+# data "azurerm_lb" "k8s" {
+#   name                = "kubernetes-internal"
+#   resource_group_name = local.aks_rg_name
+
+#   depends_on = [
+#     azurerm_kubernetes_cluster.k8s
+#   ]
 # }
 
-data "azurerm_lb" "k8s" {
-  name                = "kubernetes"
-  resource_group_name = local.aks_rg_name
+# Create Private Endpoint and Private DNS Zone on the Bastion Deployment for connectivity
+
+data "azurerm_subnet" "pe" {
+  name                 = var.pe_subnet_name
+  resource_group_name  = var.pe_rg_name
+  virtual_network_name = var.pe_vnet_name
+}
+
+data "azurerm_virtual_network" "pe" {
+  resource_group_name  = var.pe_rg_name
+  virtual_network_name = var.pe_vnet_name
+}
+
+# Update PE Subnet - setting disable private endpoint network policies to true
+resource "azurerm_subnet" "pe" {
+  name                                                     = data.azurerm_subnet.enpoint.name
+  resource_group_name                                      = data.azurerm_subnet.enpoint.resource_group_name
+  virtual_network_name                                     = data.azurerm_subnet.enpoint.virtual_network_name
+  address_prefix                                           = data.azurerm_subnet.enpoint.address_prefix
+  service_endpoints                                        = data.azurerm_subnet.enpoint.service_endpoints
+  ip_configurations                                        = data.azurerm_subnet.enpoint.ip_configurations
+  enforce_private_link_service_network_policies            = data.azurerm_subnet.enpoint.enforce_private_link_service_network_policies 
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+
+resource "azurerm_private_endpoint" "endpoint" {
+  name                = var.private_endpoint_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                            = var.private_service_connection_name
+    is_manual_connection            = var.is_manual_connection
+    request_message                 = var.is_manual_connection == "true" ? var.request_message : null
+    private_connection_resource_id  = var.private_connection_resource_id 
+    subresource_names               = var.subresource_names
+  }
+}
+
+resource "azurerm_private_endpoint" "pe" {
+  name                = local.aks_private_link_endpoint_name
+  location            = azurerm_resource_group.k8s.location
+  resource_group_name = azurerm_resource_group.k8s.name
+
+  subnet_id           = azurerm_subnet.pe.id
+  
+  private_service_connection {
+    is_manual_connection = var.pe_is_manual_connection
+    request_message = var.pe_is_manual_connection == "true" ? var.pe_request_message : null
+    name = local.aks_private_link_endpoint_connection_name
+    private_connection_resource_id = azurerm_kubernetes_cluster.k8s.id
+    subresource_names = ["management"]
+  }
+}
+
+data "azurerm_private_endpoint_connection" "pe" {
+  name                = local.aks_private_link_endpoint_name
+  resource_group_name = azurerm_resource_group.k8s.name
 
   depends_on = [
-    azurerm_kubernetes_cluster.k8s
+    azurerm_private_endpoint.pe
   ]
 }
 
-# resource "azurerm_private_endpoint" "pe" {
-#   name                = local.aks_private_link_endpoint_name
-#   location            = azurerm_resource_group.k8s.location
-#   resource_group_name = azurerm_resource_group.k8s.name
+resource "azurerm_private_dns_zone" "privatedns" {
+  name                = join(".", slice(split(".",azurerm_kubernetes_cluster.k8s.private_fqdn),1,length(split(".",azurerm_kubernetes_cluster.k8s.private_fqdn))))  
+  resource_group_name = var.pe_rg_name
+}
 
-#   subnet_id           = var.bastion_subnet_id
-  
-#   private_service_connection {
-#     is_manual_connection = false
-#     name = local.aks_private_link_endpoint_name
-#     private_connection_resource_id = azurerm_kubernetes_cluster.k8s.id
-#     subresource_names = ["management"]
-#   }
-# }
+resource "azurerm_dns_a_record" "record" {
+  name                = split(".",azurerm_kubernetes_cluster.k8s.private_fqdn)[0]
+  zone_name           = azurerm_private_dns_zone.privatedns.name
+  resource_group_name = var.pe_rg_name
+  ttl                 = 3600
+  records             = [data.azurerm_private_endpoint_connection.pe.private_service_connection.private_ip_address]
+}
+
+
+resource "azurerm_private_dns_zone_virtual_network_link" "example" {
+  name                  = local.aks_private_dns_link_name
+  resource_group_name = azurerm_resource_group.k8s.name
+  private_dns_zone_name = azurerm_private_dns_zone.privatedns.name
+  virtual_network_id    = azurerm_virtual_network.pe.id
+}
 
 # resource "azurerm_private_link_service" "pls" {
 #   name                = local.aks_private_link_service_name

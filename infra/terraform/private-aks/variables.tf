@@ -29,7 +29,29 @@ variable "ado_subnet_id" {
   description = "The Subnet ID for the Azure DevOps Self Agent."
 }
 
-# variable "bastion_subnet_id" {
-#   type        = string
-#   description = "The Subnet ID for the Private Endpoint."
-# }
+variable "pe_rg_name" {
+  type        = string
+  description = "The Resource Group name for the Private Endpoint."
+}
+
+variable "pe_vnet_name" {
+  type        = string
+  description = "The VNET name for the Private Endpoint."
+}
+
+variable "pe_subnet_name" {
+  type        = string
+  description = "The Subnet name for the Private Endpoint."
+}
+
+variable "pe_is_manual_connection" {
+  type        = string
+  description = "Does the Private Endpoint request requires Manual Approval?."
+  default = false
+}
+
+variable "pe_request_message" {
+  type        = string
+  description = "The Private Endpoint request message?."
+  default = ""
+}

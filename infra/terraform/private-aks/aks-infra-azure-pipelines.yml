@@ -114,10 +114,7 @@ stages:
               # Create and set Private Endpoint connection to Storage Account
               az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
 
-              set STORAGE_ID=$(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv)
-              echo "##vso[task.setvariable variable=terraform_storage_id]$STORAGE_ID"
-              
-              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $(terraform_storage_id) --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false
+              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv) --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false
               
               # Get Storage Key
               set KEY=$(az storage account keys list -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "[0].value" -o tsv)
@@ -180,35 +177,3 @@ stages:
             backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
             backendAzureRmContainerName: terraform
             backendAzureRmKey: terraform.tfstate
-
-        - task: AzureCLI@1
-          displayName: 'Azure CLI to deploy Private Endpoint and Private DNS Zone'
-          inputs:
-            azureSubscription: ${{ variables.ado_service_connection_name }}
-            scriptLocation: inlineScript
-            inlineScript: |
-              set AKS_RESOURCE_ID=$(az aks show --name $(aks_name) --resource-group $(resource_group) --query 'id' -o tsv)
-              echo "##vso[task.setvariable variable=aks_id]$AKS_RESOURCE_ID"
-
-              set AKS_NODE_RG_NAME=$(az aks show --name $(aks_name)  --resource-group $(resource_group) --query 'nodeResourceGroup' -o tsv) 
-              echo "##vso[task.setvariable variable=aks_node_rg_name]$AKS_NODE_RG_NAME"
-
-              az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
-              az network private-endpoint create --name "$(aks_name)-pe" --resource-group $(resource_group) --subnet $(ado_subnet_id) --private-connection-resource-id $(aks_id) --group-ids management --connection-name "$(aks_name)-aksconnection" --manual-request false
-              
-              # Setting Private DNS Zone on Bastion VNET
-              set DNS_ZONE_NAME=$(az network private-dns zone list -g $(aks_node_rg_name) --query "[0].name" -o tsv)
-              echo "##vso[task.setvariable variable=dns_zone_name]$DNS_ZONE_NAME"
-
-              set A_RECORD_NAME=$(az network private-dns record-set list -g $(aks_node_rg_name) -z $(dns_zone_name) --query "[?type == 'Microsoft.Network/privateDnsZones/A'].name" -o tsv)
-              echo "##vso[task.setvariable variable=dns_a_record_name]$A_RECORD_NAME"
-
-              set PE_NIC_ID=$(az network private-endpoint show --name "$(aks_name)-pe" --resource-group $(resource_group) --query "networkInterfaces[0].id" -o tsv)
-              echo "##vso[task.setvariable variable=aks_pe_nic_id]$PE_NIC_ID"
-
-              set A_RECORD_VALUE=$(az network nic show --ids $(aks_pe_nic_id) --query "ipConfigurations[?name=='privateEndpointIpConfig'].privateIpAddress" -o tsv)
-              echo "##vso[task.setvariable variable=aks_pe_a_record_value]$A_RECORD_VALUE"
-
-              az network private-dns zone create -g $(resource_group) -n $(dns_zone_name)
-              az network private-dns record-set a add-record -g $(resource_group) -z $(dns_zone_name) -n $(dns_a_record_name) -a $(aks_pe_a_record_value)
-              az network private-dns link vnet create -g $(resource_group) -n "$(bastion_vnet_name)-dns-link" -z $(dns_zone_name) -v $(bastion_vnet_name) -e true

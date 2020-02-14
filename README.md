@@ -126,19 +126,14 @@ vnet_name='$(prefix)-$(environment)-vnet' \
 storagekey='PipelineWillGetThisValueRuntime' \
 terraformstorageaccount='tf$(prefix)$(environment)sa' \
 terraformstoragerg='tf-$(prefix)-$(environment)-rg' \
-terraform_storage_id='PipelineWillGetThisValueRuntime' \
 acr_name='$(prefix)$(environment)acr' \
 acr='$(acr_name).azurecr.io' \
 aks_name='$(prefix)-$(environment)-aks' \
-aks_id='PipelineWillGetThisValueRuntime' \
-aks_node_rg_name='PipelineWillGetThisValueRuntime' \
-dns_zone_name='PipelineWillGetThisValueRuntime' \
-dns_a_record_name='PipelineWillGetThisValueRuntime' \
-aks_pe_nic_id='PipelineWillGetThisValueRuntime' \
-aks_pe_a_record_value='PipelineWillGetThisValueRuntime' \
 aks_service_principal_client_id='<replace-me>' \
 ado_subnet_id='<replace-me>' \
-bastion_vnet_name='<replace-me>' 
+pe_rg_name='<replace-me>' \
+pe_vnet_name='<replace-me>' \
+pe_subnet_name='<replace-me>'
 
 
 # Create Variable Secret

@@ -10,4 +10,12 @@ aks_service_principal_client_secret = "__aks_service_principal_client_secret__"
 
 ado_subnet_id = "__ado_subnet_id__"
 
-# bastion_subnet_id = "__bastion_subnet_id__"
+pe_rg_name = "__pe_rg_name__"
+
+pe_vnet_name = "__pe_vnet_name__"
+
+pe_subnet_name = "__pe_subnet_name__"
+
+pe_is_manual_connection = false
+
+pe_request_message = ""

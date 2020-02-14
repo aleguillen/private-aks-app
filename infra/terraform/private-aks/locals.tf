@@ -7,6 +7,10 @@ locals {
 
   aks_private_link_endpoint_name = "${var.prefix}-${var.environment_name}-aks-pe"
 
+  aks_private_link_endpoint_connection_name = "${var.prefix}-${var.environment_name}-aks-connection"
+  
+  aks_private_dns_link_name = "${var.prefix}-${var.environment_name}-aks-dns-link"
+
   acr_name = "${var.prefix}${var.environment_name}acr"
   
   aks_rg_name = "MC_${local.rg_name}_${local.aks_name}_${var.location}"
@@ -21,8 +25,7 @@ locals {
   
   log_analytics_workspace_sku = "PerGB2018"
 
-  # acr_managed_identity_name = "${var.prefix}-${var.environment_name}-acr-uai"
-  
+
   common_tags = {
     environment = var.environment_name
     source      = "terraform"

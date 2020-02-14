@@ -26,8 +26,6 @@ trigger:
   paths:
     include:
       - app/*
-    exclude:
-      - infra/*
 
 variables:
   - group: aks_dev_vars
