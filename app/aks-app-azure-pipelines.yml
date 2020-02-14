@@ -118,7 +118,7 @@ stages:
             releaseName: nginx-ingress
             chartType: 'Name'
             chartName: 'stable/nginx-ingress'
-            overrideValues: 'controller.replicaCount=2,set controller.nodeSelector."beta\.kubernetes\.io/os"=linux,defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux'
+            overrideValues: 'controller.replicaCount=2,controller.nodeSelector."beta\.kubernetes\.io/os"=linux,defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux'
             arguments: '-f $(System.DefaultWorkingDirectory)/_artifacts/app/internal-ingress.yaml'
             
         - task: KubectlInstaller@0
