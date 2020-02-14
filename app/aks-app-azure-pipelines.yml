@@ -54,7 +54,7 @@ stages:
             dockerComposeFileArgs: |
               TAG=$(environment)
               REGISTRY=$(acr)
-              additionalImageTags: '$(Build.BuildId)'
+              additionalImageTags: $(Build.BuildId)
               includeLatestTag: true
 
         - task: DockerCompose@0
@@ -64,7 +64,7 @@ stages:
             azureContainerRegistry: '$(acr)'
             dockerComposeFile: 'app/docker-compose.yaml'
             action: 'Push services'
-            additionalImageTags: '$(Build.BuildId)'
+            additionalImageTags: $(Build.BuildId)
             includeLatestTag: true
 
         - task: PublishBuildArtifacts@1
