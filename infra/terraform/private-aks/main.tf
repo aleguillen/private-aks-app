@@ -205,7 +205,7 @@ resource "azurerm_subnet" "pe" {
 resource "azurerm_private_endpoint" "pe" {
   name                = local.aks_private_link_endpoint_name
   location            = azurerm_resource_group.k8s.location
-  resource_group_name = azurerm_resource_group.k8s.name
+  resource_group_name = var.pe_rg_name
 
   subnet_id           = azurerm_subnet.pe.id
   
@@ -220,7 +220,7 @@ resource "azurerm_private_endpoint" "pe" {
 
 data "azurerm_private_endpoint_connection" "pe" {
   name                = local.aks_private_link_endpoint_name
-  resource_group_name = azurerm_resource_group.k8s.name
+  resource_group_name = var.pe_rg_name
 
   depends_on = [
     azurerm_private_endpoint.pe
