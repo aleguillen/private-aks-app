@@ -50,10 +50,10 @@ stages:
             azureSubscription: ${{ variables.ado_service_connection_name }}
             azureContainerRegistry: '$(acr)'
             dockerComposeFile: 'app/docker-compose.yaml'
+            action: 'Build services'
             dockerComposeFileArgs: |
               TAG=$(environment)
               REGISTRY=$(acr)
-              action: 'Build services'
               additionalImageTags: '$(Build.BuildId)'
               includeLatestTag: true
 
