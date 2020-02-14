@@ -98,7 +98,7 @@ stages:
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in **/*.yaml'
           inputs:
-            rootDirectory: '$(System.DefaultWorkingDirectory)/_artifact/app'
+            rootDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/app'
             targetFiles: '**/*.yaml'
             tokenPrefix: '${__'
             tokenSuffix: '__}'
@@ -115,7 +115,7 @@ stages:
             kubernetesCluster: '$(aks_name)'
             namespace: default
             command: apply
-            arguments: '-f $(System.DefaultWorkingDirectory)/_artifact/app/azure-vote-all-in-one-redis.yaml  --overwrite=true'
+            arguments: '-f $(System.DefaultWorkingDirectory)/_artifacts/app/azure-vote-all-in-one-redis.yaml  --overwrite=true'
             azureSubscriptionEndpointForSecrets: ${{ variables.ado_service_connection_name }}
             azureContainerRegistry: '$(acr)'
             secretName: 'acr-auth'
