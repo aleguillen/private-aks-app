@@ -79,7 +79,7 @@ stages:
       - job: Deploy
         displayName: Deploy
         pool:
-          name: ${{variables.ado_agent_pool }}
+          name: ${{ variables.ado_agent_pool }}
         steps:   
         - task: DownloadBuildArtifacts@0
           inputs:
@@ -100,8 +100,8 @@ stages:
           inputs:
             rootDirectory: '$(System.DefaultWorkingDirectory)/_artifact/app'
             targetFiles: '**/*.yaml'
-            tokenPrefix: '${{'
-            tokenSuffix: '}}'
+            tokenPrefix: '${__'
+            tokenSuffix: '__}'
 
         - task: KubectlInstaller@0
           displayName: 'Install Kubectl latest'
