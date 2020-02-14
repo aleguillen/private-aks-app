@@ -111,7 +111,9 @@ stages:
           displayName: 'Bash Script to Add Helm repos'
           inputs:
             targetType: 'inline'
-            script: helm repo update
+            script: |
+              helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+              helm repo update
 
         - task: HelmDeploy@0
           displayName: Helm install NGINX
