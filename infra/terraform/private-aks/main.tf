@@ -174,7 +174,9 @@ resource "azurerm_kubernetes_cluster" "k8s" {
 #   ]
 # }
 
+#
 # Create Private Endpoint and Private DNS Zone on the Bastion Deployment for connectivity
+#
 
 data "azurerm_subnet" "pe" {
   name                 = var.pe_subnet_name
@@ -184,37 +186,20 @@ data "azurerm_subnet" "pe" {
 
 data "azurerm_virtual_network" "pe" {
   resource_group_name  = var.pe_rg_name
-  virtual_network_name = var.pe_vnet_name
+  name = var.pe_vnet_name
 }
 
 # Update PE Subnet - setting disable private endpoint network policies to true
 resource "azurerm_subnet" "pe" {
-  name                                                     = data.azurerm_subnet.enpoint.name
-  resource_group_name                                      = data.azurerm_subnet.enpoint.resource_group_name
-  virtual_network_name                                     = data.azurerm_subnet.enpoint.virtual_network_name
-  address_prefix                                           = data.azurerm_subnet.enpoint.address_prefix
-  service_endpoints                                        = data.azurerm_subnet.enpoint.service_endpoints
-  ip_configurations                                        = data.azurerm_subnet.enpoint.ip_configurations
-  enforce_private_link_service_network_policies            = data.azurerm_subnet.enpoint.enforce_private_link_service_network_policies 
+  name                                                     = data.azurerm_subnet.pe.name
+  resource_group_name                                      = data.azurerm_subnet.pe.resource_group_name
+  virtual_network_name                                     = data.azurerm_subnet.pe.virtual_network_name
+  address_prefix                                           = data.azurerm_subnet.pe.address_prefix
+  service_endpoints                                        = data.azurerm_subnet.pe.service_endpoints
+  ip_configurations                                        = data.azurerm_subnet.pe.ip_configurations
+  enforce_private_link_service_network_policies            = data.azurerm_subnet.pe.enforce_private_link_service_network_policies 
 
   enforce_private_link_endpoint_network_policies = true
-}
-
-
-resource "azurerm_private_endpoint" "endpoint" {
-  name                = var.private_endpoint_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
-
-  subnet_id           = azurerm_subnet.endpoint.id
-
-  private_service_connection {
-    name                            = var.private_service_connection_name
-    is_manual_connection            = var.is_manual_connection
-    request_message                 = var.is_manual_connection == "true" ? var.request_message : null
-    private_connection_resource_id  = var.private_connection_resource_id 
-    subresource_names               = var.subresource_names
-  }
 }
 
 resource "azurerm_private_endpoint" "pe" {
@@ -255,12 +240,11 @@ resource "azurerm_dns_a_record" "record" {
   records             = [data.azurerm_private_endpoint_connection.pe.private_service_connection.private_ip_address]
 }
 
-
 resource "azurerm_private_dns_zone_virtual_network_link" "example" {
   name                  = local.aks_private_dns_link_name
   resource_group_name = azurerm_resource_group.k8s.name
   private_dns_zone_name = azurerm_private_dns_zone.privatedns.name
-  virtual_network_id    = azurerm_virtual_network.pe.id
+  virtual_network_id    = data.azurerm_virtual_network.pe.id
 }
 
 # resource "azurerm_private_link_service" "pls" {
