@@ -200,7 +200,6 @@ data "template_cloudinit_config" "config" {
   base64_encode = true
 
   part {
-    content_type = "text/cloud-config"
     content = data.template_file.cloudinit.rendered
   }
 }
