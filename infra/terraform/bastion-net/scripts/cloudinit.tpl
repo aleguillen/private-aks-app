@@ -1,12 +1,15 @@
 #cloud-config
 package_upgrade: true
+packages:
+  - curl
+  - unzip
+
 runcmd:
  #
  # Create Folder under Home/User directory
  #
- - mkdir ~/ado_config 
- - echo "[$(date +%F_%T)] Starting cloud_init script" >> ~/ado_config/ado_cloud_init.log
- - sudo apt install curl -y
+ - mkdir azagent; cd azagent
+ - echo "[$(date +%F_%T)] Starting cloud_init script" >> ./ado_cloud_init.log
  #
  # Downloding and installing VSTS agent package
  #
