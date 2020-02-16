@@ -108,6 +108,9 @@ stages:
           inputs: 
             helmVersionToInstall: 3.0.0
 
+        - task: KubectlInstaller@0
+          displayName: 'Install Kubectl latest'
+
         - task: Bash@3
           displayName: 'Bash Script to Add Helm repos'
           inputs:
@@ -129,9 +132,6 @@ stages:
         #     chartName: 'stable/nginx-ingress'
         #     overrideValues: 'controller.replicaCount=2,controller.nodeSelector."beta\.kubernetes\.io/os"=linux,defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux'
         #     arguments: '-f $(System.DefaultWorkingDirectory)/_artifacts/app/internal-ingress.yaml'
-            
-        - task: KubectlInstaller@0
-          displayName: 'Install Kubectl latest'
 
         - task: Kubernetes@1
           displayName: 'kubectl apply'
