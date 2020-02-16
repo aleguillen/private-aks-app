@@ -121,12 +121,17 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   location            = azurerm_resource_group.k8s.location
   dns_prefix          = local.aks_dns_prefix
 
+
+  private_link_enabled = true
+  
+  kubernetes_version = var.aks_version
+
   default_node_pool {
     name       = "default"
     node_count = local.aks_node_count
     vm_size    = "Standard_D2_v3"
     availability_zones = [1, 2, 3]
-    
+
     vnet_subnet_id = azurerm_subnet.default.id
   }
 
@@ -134,8 +139,6 @@ resource "azurerm_kubernetes_cluster" "k8s" {
     client_id     = var.aks_service_principal_client_id
     client_secret = var.aks_service_principal_client_secret
   }
-
-  private_link_enabled = true
 
   network_profile {
     network_plugin = "kubenet"

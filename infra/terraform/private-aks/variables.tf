@@ -24,6 +24,11 @@ variable "aks_service_principal_client_secret" {
   description = "The Client Secret for the Service Principal."
 }
 
+variable "aks_version" {
+  type        = string
+  description = "Version of Kubernetes specified when creating the AKS managed cluster."
+}
+
 variable "ado_subnet_id" {
   type        = string
   description = "The Subnet ID for the Azure DevOps Self Agent."
