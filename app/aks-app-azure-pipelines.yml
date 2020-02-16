@@ -103,35 +103,8 @@ stages:
             tokenPrefix: '${__'
             tokenSuffix: '__}'
 
-        - task: HelmInstaller@1
-          displayName: Helm installer 3.0.0
-          inputs: 
-            helmVersionToInstall: 3.0.0
-
         - task: KubectlInstaller@0
           displayName: 'Install Kubectl latest'
-
-        - task: Bash@3
-          displayName: 'Bash Script to Add Helm repos'
-          inputs:
-            targetType: 'inline'
-            script: |
-              helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-              helm repo update
-              helm install my-nginx-ingress stable/nginx-ingress -f $(System.DefaultWorkingDirectory)/_artifacts/app/internal-ingress.yaml --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux --wait --force
-
-        # - task: HelmDeploy@0
-        #   displayName: Helm install NGINX
-        #   inputs:
-        #     azureSubscriptionEndpoint: ${{ variables.ado_service_connection_name }}
-        #     azureResourceGroup: '$(resource_group)'
-        #     kubernetesCluster: '$(aks_name)'
-        #     command: upgrade
-        #     releaseName: nginx-ingress
-        #     chartType: 'Name'
-        #     chartName: 'stable/nginx-ingress'
-        #     overrideValues: 'controller.replicaCount=2,controller.nodeSelector."beta\.kubernetes\.io/os"=linux,defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux'
-        #     arguments: '-f $(System.DefaultWorkingDirectory)/_artifacts/app/internal-ingress.yaml'
 
         - task: Kubernetes@1
           displayName: 'kubectl apply'
@@ -146,4 +119,32 @@ stages:
             azureSubscriptionEndpointForSecrets: ${{ variables.ado_service_connection_name }}
             azureContainerRegistry: '$(acr)'
             secretName: 'acr-auth'
+
+        - task: HelmInstaller@1
+          displayName: Helm installer 3.0.0
+          inputs: 
+            helmVersionToInstall: 3.0.0
+
+        - task: Bash@3
+          displayName: 'Bash Script to Add Helm repos'
+          inputs:
+            targetType: 'inline'
+            script: |
+              helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+              helm repo update
+        # helm install my-nginx-ingress stable/nginx-ingress -f $(System.DefaultWorkingDirectory)/_artifacts/app/internal-ingress.yaml --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux --wait
+
+        - task: HelmDeploy@0
+          displayName: Helm install NGINX
+          inputs:
+            azureSubscriptionEndpoint: ${{ variables.ado_service_connection_name }}
+            azureResourceGroup: '$(resource_group)'
+            kubernetesCluster: '$(aks_name)'
+            namespace: default
+            command: 'upgrade'
+            releaseName: 'my-nginx-ingress'
+            chartType: 'Name'
+            chartName: 'stable/nginx-ingress'
+            overrideValues: 'controller.replicaCount=2,controller.nodeSelector."beta\.kubernetes\.io/os"=linux,defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux'
+            arguments: '-f $(System.DefaultWorkingDirectory)/_artifacts/app/internal-ingress.yaml'
 
