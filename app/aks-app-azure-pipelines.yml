@@ -104,9 +104,10 @@ stages:
             tokenSuffix: '__}'
 
         - task: HelmInstaller@1
-          displayName: Helm installer 3.1.0
+          displayName: Helm installer 3.0.0
           inputs: 
-            helmVersionToInstall: 3.1.0
+            helmVersionToInstall: 3.0.0
+            
         - task: Bash@3
           displayName: 'Bash Script to Add Helm repos'
           inputs:
