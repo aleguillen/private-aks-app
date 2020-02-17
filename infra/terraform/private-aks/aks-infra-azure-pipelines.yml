@@ -131,10 +131,10 @@ stages:
               # Get latest version
               az aks get-versions -l $(location) --query 'orchestrators[-1].orchestratorVersion' -o tsv
 
-              set K8S_VERSION=$(az aks get-versions -l $(location) --query 'orchestrators[-1].orchestratorVersion' -o tsv)
+              set K8S_VERSION=$(az aks get-versions -l $(location) --query "orchestrators[-1].orchestratorVersion" -o tsv)
               
               # Set AKS_VERSION as Variable for later use
-              echo "##vso[task.setvariable variable=aks_version]$K8S_VERSION"
+              echo "##vso[task.setvariable variable=aks_version]$(az aks get-versions -l $(location) --query "orchestrators[-1].orchestratorVersion" -o tsv)"
 
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in terraform file'
