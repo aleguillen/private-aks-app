@@ -171,7 +171,7 @@ resource "azurerm_kubernetes_cluster" "k8s" {
 
 # Add Subnet role assigment for Ingress Internal LB to be created. 
 # This required ADO service connection to have Owner rights over current subscription (Contributor will not work)
-resource "azurerm_role_assignment" "example" {
+resource "azurerm_role_assignment" "subnet_role_assignment" {
   scope                = azurerm_subnet.default.id
   role_definition_name = "Owner"
   principal_id         = var.aks_service_principal_id
