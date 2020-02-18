@@ -115,7 +115,7 @@ stages:
             kubernetesCluster: '$(aks_name)'
             namespace: default
             command: apply
-            arguments: '-f $(System.DefaultWorkingDirectory)/_artifacts/app/azure-vote-all-in-one-redis.yaml  --overwrite=true'
+            arguments: '-f $(System.DefaultWorkingDirectory)/_artifacts/app/azure-vote-all-in-one-redis.yaml  --overwrite=true --validate=false'
             azureSubscriptionEndpointForSecrets: ${{ variables.ado_service_connection_name }}
             azureContainerRegistry: '$(acr)'
             secretName: 'acr-auth'
