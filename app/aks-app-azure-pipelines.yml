@@ -142,7 +142,7 @@ stages:
             kubernetesCluster: '$(aks_name)'
             namespace: default
             command: 'upgrade'
-            force: true
+            install: true
             releaseName: 'my-nginx-ingress'
             chartType: 'Name'
             chartName: 'stable/nginx-ingress'
