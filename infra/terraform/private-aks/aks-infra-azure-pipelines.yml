@@ -121,9 +121,11 @@ stages:
               
               # Set Storage Key as Variable for later use
               echo "##vso[task.setvariable variable=storagekey]$KEY"
-              
+        
+        # This task is disabled and value is set in the variable group. Due to insuficient permissions issues. 
         - task: AzureCLI@1
           displayName: 'Azure CLI to get Service Principal ID'
+          enabled: false 
           inputs:
             azureSubscription: ${{ variables.ado_service_connection_name }}
             scriptLocation: inlineScript
