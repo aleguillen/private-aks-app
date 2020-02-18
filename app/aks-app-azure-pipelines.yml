@@ -93,7 +93,7 @@ stages:
           inputs:
             azureSubscription: ${{ variables.ado_service_connection_name }}
             scriptLocation: inlineScript
-            inlineScript: 'az aks get-credentials -n $(aks_name) -g $(resource_group)'
+            inlineScript: 'az aks get-credentials -n $(aks_name) -g $(resource_group) --overwrite-existing'
 
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in **/*.yaml'
