@@ -142,9 +142,25 @@ stages:
             kubernetesCluster: '$(aks_name)'
             namespace: default
             command: 'upgrade'
+            force: true
             releaseName: 'my-nginx-ingress'
             chartType: 'Name'
             chartName: 'stable/nginx-ingress'
             overrideValues: 'controller.nodeSelector."beta\.kubernetes\.io/os"=linux,defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux'
             arguments: '-f $(System.DefaultWorkingDirectory)/_artifacts/app/internal-ingress.yaml'
 
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to set Private Link Service for Ingress'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptLocation: inlineScript
+            inlineScript: |
+              # Create Private Link Service
+              set NODE_AKS_RG_NAME=$(call az aks show --resource-group $(resource_group) --name $(aks_name) --query "nodeResourceGroup" --output tsv)
+              set LB_FRONTEND_IP_CONFIG=$(call az network lb show -g $AKS_NODE_RG_NAME -n "kubernetes-internal" --query "frontendIpConfigurations[0].id" -o tsv)
+              call az network private-link-service create -g $(resource_group) -n "$(prefix)-$(environment)-intlb-pls" --vnet-name $(vnet_name) --subnet "proxy-subnet" --lb-frontend-ip-configs $LB_FRONTEND_IP_CONFIG --location $LOCATION 
+        
+              set PLS_ID=$(call az network private-link-service show -g $(resource_group) --name "$(prefix)-$(environment)-intlb-pls" --query "id" -o tsv)
+              set SUBNET_ID=$(call az network vnet subnet show -g $(pe_rg_name) -n $(pe_subnet_name) --vnet-name $(pe_vnet_name) --query 'id' -o tsv)
+              call az network vnet subnet update --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --disable-private-endpoint-network-policies true
+              call az network private-endpoint create --name "$(prefix)-$(environment)-intlb-pe" --resource-group $(pe_rg_name) --subnet $SUBNET_ID --private-connection-resource-id $PLS_ID --connection-name "$(prefix)-$(environment)-intlb-connection" --manual-request false

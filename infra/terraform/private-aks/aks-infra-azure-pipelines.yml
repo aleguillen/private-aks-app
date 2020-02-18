@@ -122,16 +122,6 @@ stages:
               # Set Storage Key as Variable for later use
               echo "##vso[task.setvariable variable=storagekey]$KEY"
               
-        # - task: AzureCLI@1
-        #   displayName: 'Azure CLI to get latest AKS Version available'
-        #   inputs:
-        #     azureSubscription: ${{ variables.ado_service_connection_name }}
-        #     scriptLocation: inlineScript
-        #     inlineScript: |
-        #       # Get latest version
-        #       # Set AKS_VERSION as Variable for later use
-        #       echo "##vso[task.setvariable variable=aks_version]$(az aks get-versions -l $(location) --query "orchestrators[-1].orchestratorVersion" -o tsv)"
-
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in terraform file'
           inputs:
