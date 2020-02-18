@@ -156,11 +156,11 @@ stages:
             scriptLocation: inlineScript
             inlineScript: |
               # Create Private Link Service
-              set AKS_NODE_RG_NAME=$(az aks show --resource-group $(resource_group) --name $(aks_name) --query "nodeResourceGroup" --output tsv)
-              set LB_FRONTEND_IP_CONFIG=$(az network lb show -g $AKS_NODE_RG_NAME -n "kubernetes-internal" --query "frontendIpConfigurations[0].id" -o tsv)
+              AKS_NODE_RG_NAME=$(az aks show --resource-group $(resource_group) --name $(aks_name) --query "nodeResourceGroup" --output tsv)
+              LB_FRONTEND_IP_CONFIG=$(az network lb show -g $AKS_NODE_RG_NAME -n "kubernetes-internal" --query "frontendIpConfigurations[0].id" -o tsv)
               az network private-link-service create -g $(resource_group) -n "$(prefix)-$(environment)-intlb-pls" --vnet-name $(vnet_name) --subnet "proxy-subnet" --lb-frontend-ip-configs $LB_FRONTEND_IP_CONFIG --location $LOCATION 
         
-              set PLS_ID=$(az network private-link-service show -g $(resource_group) --name "$(prefix)-$(environment)-intlb-pls" --query "id" -o tsv)
-              set SUBNET_ID=$(az network vnet subnet show -g $(pe_rg_name) -n $(pe_subnet_name) --vnet-name $(pe_vnet_name) --query 'id' -o tsv)
+              PLS_ID=$(az network private-link-service show -g $(resource_group) --name "$(prefix)-$(environment)-intlb-pls" --query "id" -o tsv)
+              SUBNET_ID=$(az network vnet subnet show -g $(pe_rg_name) -n $(pe_subnet_name) --vnet-name $(pe_vnet_name) --query 'id' -o tsv)
               az network vnet subnet update --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --disable-private-endpoint-network-policies true
               az network private-endpoint create --name "$(prefix)-$(environment)-intlb-pe" --resource-group $(pe_rg_name) --subnet $SUBNET_ID --private-connection-resource-id $PLS_ID --connection-name "$(prefix)-$(environment)-intlb-connection" --manual-request false
