@@ -28,7 +28,7 @@ runcmd:
  - echo "[$(date +%F_%T)] Running installdependencies.sh"
  - ./bin/installdependencies.sh
  - echo "[$(date +%F_%T)] Running config.sh"
- - ./config.sh --unattended --url "${server_url}" --auth pat --token "${pat_token}" --pool "${pool_name}" --agent $HOSTNAME --work _work --acceptTeeEula
+ - sudo -u ${vm_admin} ./config.sh --unattended --url "${server_url}" --auth pat --token "${pat_token}" --pool "${pool_name}" --agent $HOSTNAME --work _work --acceptTeeEula
  - echo "[$(date +%F_%T)] Running scv.sh"
  - ./svc.sh install
  - ./svc.sh start

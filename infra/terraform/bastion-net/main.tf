@@ -192,6 +192,7 @@ data "template_file" "cloudinit" {
     server_url = var.ado_server_url
     pat_token = var.ado_pat_token
     pool_name = var.ado_pool_name
+    vm_admin = var.ado_vm_username
   }
 }
 
