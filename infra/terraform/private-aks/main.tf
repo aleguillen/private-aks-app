@@ -169,14 +169,11 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   )
 }
 
-# data "azurerm_lb" "k8s" {
-#   name                = "kubernetes-internal"
-#   resource_group_name = local.aks_rg_name
-
-#   depends_on = [
-#     azurerm_kubernetes_cluster.k8s
-#   ]
-# }
+resource "azurerm_role_assignment" "example" {
+  scope                = azurerm_subnet.default.id
+  role_definition_name = "Owner"
+  principal_id         = var.aks_service_principal_client_id
+}
 
 #
 # Create Private Endpoint and Private DNS Zone on the Bastion Deployment for connectivity
@@ -250,6 +247,17 @@ resource "azurerm_private_dns_zone_virtual_network_link" "example" {
   private_dns_zone_name = azurerm_private_dns_zone.privatedns.name
   virtual_network_id    = data.azurerm_virtual_network.pe.id
 }
+
+# Create Private Link Service using Terraform 
+
+# data "azurerm_lb" "k8s" {
+#   name                = "kubernetes-internal"
+#   resource_group_name = azurerm_kubernetes_cluster.k8s.node_resource_group 
+
+#   depends_on = [
+#     azurerm_kubernetes_cluster.k8s
+#   ]
+# }
 
 # resource "azurerm_private_link_service" "pls" {
 #   name                = local.aks_private_link_service_name
