@@ -156,7 +156,7 @@ stages:
             scriptLocation: inlineScript
             inlineScript: |
               # Create Private Link Service
-              set NODE_AKS_RG_NAME=$(az aks show --resource-group $(resource_group) --name $(aks_name) --query "nodeResourceGroup" --output tsv)
+              set AKS_NODE_RG_NAME=$(az aks show --resource-group $(resource_group) --name $(aks_name) --query "nodeResourceGroup" --output tsv)
               set LB_FRONTEND_IP_CONFIG=$(az network lb show -g $AKS_NODE_RG_NAME -n "kubernetes-internal" --query "frontendIpConfigurations[0].id" -o tsv)
               az network private-link-service create -g $(resource_group) -n "$(prefix)-$(environment)-intlb-pls" --vnet-name $(vnet_name) --subnet "proxy-subnet" --lb-frontend-ip-configs $LB_FRONTEND_IP_CONFIG --location $LOCATION 
         
