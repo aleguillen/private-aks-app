@@ -6,6 +6,13 @@ terraform {
       key                  = "terraform.tfstate"
       access_key  ="__storagekey__"
   }
+  
+  backend "azuread" {
+      storage_account_name = "__terraformstorageaccount__"
+      container_name       = "terraform"
+      key                  = "terraform.tfstate"
+      access_key  ="__storagekey__"
+  }
 }
 
 # Create Resource Group
@@ -171,14 +178,14 @@ resource "azurerm_kubernetes_cluster" "k8s" {
 
 # Add Subnet role assigment for Ingress Internal LB to be created. 
 # This required ADO service connection to have Owner rights over current subscription (Contributor will not work)
-data "azurerm_azuread_service_principal" "sp" {
+data "azuread_service_principal" "sp" {
   application_id = var.aks_service_principal_client_id
 }
 
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_subnet.default.id
   role_definition_name = "Owner"
-  principal_id         = data.azurerm_azuread_service_principal.sp.id
+  principal_id         = data.azuread_service_principal.sp.id
 }
 
 #
