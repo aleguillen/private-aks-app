@@ -16,12 +16,17 @@ variable "location" {
 
 variable "aks_service_principal_client_id" {
   type        = string
-  description = "The Client ID for the Service Principal."
+  description = "The Client ID of the Service Principal."
 }
 
 variable "aks_service_principal_client_secret" {
   type        = string
-  description = "The Client Secret for the Service Principal."
+  description = "The Client Secret of the Service Principal."
+}
+
+variable "aks_service_principal_id" {
+  type        = string
+  description = "The ID of the Service Principal."
 }
 
 variable "aks_version" {

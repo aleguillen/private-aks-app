@@ -8,6 +8,8 @@ aks_service_principal_client_id = "__aks_service_principal_client_id__"
 
 aks_service_principal_client_secret = "__aks_service_principal_client_secret__"
 
+aks_service_principal_id = "__aks_service_principal_id__"
+
 aks_version = "__aks_version__"
 
 ado_subnet_id = "__ado_subnet_id__"

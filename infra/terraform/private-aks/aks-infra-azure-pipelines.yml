@@ -122,6 +122,15 @@ stages:
               # Set Storage Key as Variable for later use
               echo "##vso[task.setvariable variable=storagekey]$KEY"
               
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to get Service Principal ID'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptLocation: inlineScript
+            inlineScript: |
+              # Set Service Principal ID as Variable for later use
+              echo "##vso[task.setvariable variable=aks_service_principal_id]$(az ad app show --id $(aks_service_principal_client_id) --query "objectId" -o tsv))"
+              
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in terraform file'
           inputs:

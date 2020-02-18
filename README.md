@@ -131,6 +131,7 @@ acr='$(acr_name).azurecr.io' \
 aks_name='$(prefix)-$(environment)-aks' \
 aks_version='PipelineWillGetThisValueRuntime' \
 aks_service_principal_client_id='<replace-me>' \
+aks_service_principal_id='PipelineWillGetThisValueRuntime' \
 ado_subnet_id='<replace-me>' \
 pe_rg_name='<replace-me>' \
 pe_vnet_name='<replace-me>' \
