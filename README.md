@@ -9,7 +9,7 @@ Deploy ACR with a service endpoint. Access ingress controller through private en
 * Azure CLI version 2.0.77 or later, and the Azure CLI AKS Preview extension version 0.4.18
 * Terraform version 0.12 or later, and AzureRM Provider 1.39 or later.
 * Azure DevOps project and Git repo.
-* (Optional) Install Azure DevOps Extension.
+* Install Azure DevOps Extension.
 ```bash
 # Confirm AZ CLI installation
 az --version
@@ -29,21 +29,35 @@ The purpose of this sample is to create an end to end solution to connect to app
 
 This is a sample architecture. Let's break it down:
 
-### Bastion Deployment - [/infra/terraform/bastion-net](/infra/terraform/bastion-net)
+### Bastion Deployment Overview - [/infra/terraform/bastion-net](/infra/terraform/bastion-net)
 
 * Connects to on-premises via [Azure ExpressRoute](https://azure.microsoft.com/en-us/services/expressroute/) - this is not required or configured in this sample, however it's meant to show case the availability for access your private application from on-premises due to the ExpressRoute connection.
 * JumpServer VM - this server uses [Azure Bastion](https://azure.microsoft.com/en-us/services/azure-bastion/) to fully manage and connect via RDP and/or SSH privately fom the Azure portal.
 * ADO Server - this VM is configured as a [Azure Pipeline Self-hosted Agent](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/agents) within the network that can connect privately to Azure Container Registry and AKS cluster.
 * Private Endpoints - this allows private and secure connection using [Azure Private Link - Private Endpoints](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) which provisions a network interface with a private Ip bringing your service into the VNET.
 * [Virtual Network Service Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) - allow you to secure Azure service resources to only your VNETs, all traffic from your VNETs to the Azure Service always remains on the Microsoft Azure backbone network. 
-* Private DNS Zone - it is responsible for translating a service name to its IP address, you can link a [Private DNS Zone](https://docs.microsoft.com/en-us/azure/dns/private-dns-overview) to a VNET to override and resolve specific domains. Alternatively, for **testing purposes** you can modify your Hosts file (etc/hosts) locally and map hostnames to IP address. For enterprise solutions, that already have a custom DNS server, you can add or modify your records to achive the same.
+* Private DNS Zone - it is responsible for translating a service name to its IP address, you can link a [Private DNS Zone](https://docs.microsoft.com/en-us/azure/dns/private-dns-overview) to a VNET to override and resolve specific domains. For enterprise solutions, that already have a custom DNS server, you can add or modify your records to achive the same. Alternatively, for **testing purposes** you can modify your Hosts file (etc/hosts) locally and map hostnames to IP address. 
+    * Modify /etc/hosts in Windows - Open PowerShell in Admin mode and execute:
+        ```powershell
+        # Go to hosts file directory location
+        cd C:\Windows\System32\drivers\etc
 
-### Private AKS Deployment - [/infra/terraform/bastion-net](/infra/terraform/private-aks)
+        # Add new IP / FQDN mapping 
+        "127.0.0.1  localhost" | Add-Content hosts
+        
+        # Get updated hosts content
+        Get-Content hosts 
+        ```
+    * Modify /etc/hosts in Linux
+        ```bash
+        sudo echo "127.0.0.1    localhost" | sudo tee -a /etc/hosts
+        ```
+
+### Private AKS Deployment Overview - [/infra/terraform/bastion-net](/infra/terraform/private-aks)
 
 * [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-intro) - managed, private Docker registry service based on Docker Registry 2.0. In this case we will be restricting access to ACR using virtual network firewall rules and service endpoints, for more information see [here](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-vnet)
-* [Private Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/private-clusters) - by using a private cluster with internal IP you can ensure that network traffic remains inside the network
-* [Private Link Service](https://docs.microsoft.com/en-us/azure/private-link/private-link-service-overview) - 
-
+* [Private Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/private-clusters) - by using a private cluster with internal IP you can ensure that network traffic remains inside the network.
+* [Private Link Service](https://docs.microsoft.com/en-us/azure/private-link/private-link-service-overview) -  is the reference to your own service that is running behind Azure Standard Load Balancer so that access to your service can be privately from their own VNets.
 
 ## Application: Azure Voting App - [/app](/app)
 
@@ -53,6 +67,8 @@ To walk through a quick deployment of this application, see the AKS [quick start
 
 
 ## Azure DevOps Configuration 
+
+### General setup
 * [Login](https://dev.azure.com) into your Azure DevOps Organization.
 * Create a new project in Azure DevOps, for information see [here](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project).
     * Sample name: **private-aks-app**
@@ -60,12 +76,30 @@ To walk through a quick deployment of this application, see the AKS [quick start
     * Name: **UbuntuPrivatePool**
     * Keep option **Grant access permission to all pipelines** checked.
 * Create a new Azure Service Connection to your Azure Subscription, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints)
-    * Connection type: **Azure Resource Manager**.
-    * Authentication Method: **Service Principal (automatic)** - thisoption will automatically create the Service Principal on your behalf, if you don't have permissions to create a Service Principal please use the manual option.
-    * Scope level: Select the appropiate level, for this demo I used **Subscription**.
-    * Service connection name: **Azure Subscription**.
+    * Azure CLI script:
+    ```bash
+    az login
+    az account set --subscription <my-subscription-id-or-name>
+    
+    TENANT_ID=$(az account show --query tenantId -o tsv)
+    SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+    SUBSCRIPTION_NAME=$(az account show --query name -o tsv)
+    APP_NAME="ado-sp-private-aks-app-${SUBSCRIPTION_ID}"
+    
+    APP_PWD=$(az ad sp create-for-rbac --name $APP_NAME --role Owner --scopes "subscriptions/${SUBSCRIPTION_ID}" --query "password" -o tsv)
+    #"573afa88-3e2b-4ef5-b50f-b9dd9bd1ae82"
+    APP_ID=$(az ad app list --display-name $APP_NAME --query [].appId -o tsv)
+    SP_ID=$(az ad sp list --display-name $APP_NAME --query "objectId" -o tsv)
+    
+    az devops service-endpoint azurerm create --azure-rm-service-principal-id $SP_ID --azure-rm-subscription-id $SUBSCRIPTION_ID --azure-rm-subscription-name $SUBSCRIPTION_NAME --azure-rm-tenant-id $TENANT_ID --name "Azure Subscription"
+    ```
+    * Azure DevOps Portal:
+        * Connection type: **Azure Resource Manager**.
+        * Authentication Method: **Service Principal (automatic)** - this option will automatically create the Service Principal on your behalf, if you don't have permissions to create a Service Principal please use the manual option. This demo requires to set RBAC for the Private Cluster, this Service Principal requires to have 
+        * Scope level: Select the appropiate level, for this demo I used **Subscription**.
+        * Service connection name: **Azure Subscription**.
 
-**Note: The Service connection name can be customized, just remember to update all azure-pipelines.yml files to use the right Service Connection name in the variables section.**
+    **Note: The Service connection name can be customized, just remember to update all azure-pipelines.yml files to use the right Service Connection name in the variables section.**
 
 * Create a Personal Access Token (PAT token), we will use this token to configure the Self Hosted Agent for Azure DevOps. For more information on how to create a PAT token see [here](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate)
 * [Import Git](https://docs.microsoft.com/en-us/azure/devops/repos/git/import-git-repository) repo into your Azure DevOps project.
@@ -74,12 +108,16 @@ To walk through a quick deployment of this application, see the AKS [quick start
 * Configure Azure DevOps CLI
 ```bash
 # Make sure your Azure DevOps defaults include the organization and project from the command prompt
-az devops configure --defaults organization=https://dev.azure.com/your-organization project=your-project
+az devops configure --defaults organization=https://dev.azure.com/<your-organization> project=<your-project>
 
 # Sign in to the Azure CLI
 az login
 ```
-* Create Variable groups. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly. Bastion Variables: **bastion_dev_vars**. AKS Variables: **aks_dev_vars**
+
+
+### Bastion Pipeline setup 
+
+* Create Bastion Variable group **bastion_dev_vars**. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly. 
 ```bash
 # Create Bastion Variable group with non-secret variables
 az pipelines variable-group create \
@@ -111,7 +149,15 @@ az pipelines variable-group variable create \
 --name 'ado_pat_token' \
 --value '<replace-me>'
 ```
+* Create Bastion Infra Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
+```bash
+az pipelines create --name 'Bastion.Infra.CI.CD' --yaml-path '/infra/terraform/bastion-net/bastion-infra-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
+```
 
+
+### AKS Pipeline setup 
+
+* Create AKS Variable group **aks_dev_vars**. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly. 
 ```bash
 # Create AKS Variable group with non-secret variables
 az pipelines variable-group create \
@@ -129,7 +175,7 @@ terraformstoragerg='tf-$(prefix)-$(environment)-rg' \
 acr_name='$(prefix)$(environment)acr' \
 acr='$(acr_name).azurecr.io' \
 aks_name='$(prefix)-$(environment)-aks' \
-aks_version='PipelineWillGetThisValueRuntime' \
+aks_version='1.15.7' \
 aks_service_principal_client_id='<replace-me>' \
 aks_service_principal_id='<replace-me>' \
 ado_subnet_id='<replace-me>' \
@@ -145,11 +191,6 @@ az pipelines variable-group variable create \
 --secret true \
 --name 'aks_service_principal_client_secret' \
 --value '<replace-me>'
-
-```
-* Create Bastion Infra Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
-```bash
-az pipelines create --name 'Bastion.Infra.CI.CD' --yaml-path '/infra/terraform/bastion-net/bastion-infra-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
 ```
 * Create AKS Infra Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
