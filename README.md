@@ -78,19 +78,24 @@ To walk through a quick deployment of this application, see the AKS [quick start
 * Create a new Azure Service Connection to your Azure Subscription, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints)
     * Azure CLI script:
     ```bash
+    # Login and select Azure Subscription context
     az login
     az account set --subscription <my-subscription-id-or-name>
     
+    # Retrieve Account and Subscription details
     TENANT_ID=$(az account show --query tenantId -o tsv)
     SUBSCRIPTION_ID=$(az account show --query id -o tsv)
     SUBSCRIPTION_NAME=$(az account show --query name -o tsv)
     APP_NAME="ado-sp-private-aks-app-${SUBSCRIPTION_ID}"
     
+    # Create Service Principal and get Password created
     APP_PWD=$(az ad sp create-for-rbac --name $APP_NAME --role Owner --scopes "subscriptions/${SUBSCRIPTION_ID}" --query "password" -o tsv)
-    #"573afa88-3e2b-4ef5-b50f-b9dd9bd1ae82"
+    
+    # Get other Service Principal details
     APP_ID=$(az ad app list --display-name $APP_NAME --query [].appId -o tsv)
     SP_ID=$(az ad sp list --display-name $APP_NAME --query "objectId" -o tsv)
     
+    # Create Service Connection in Azure DevOps to Azure RM.
     az devops service-endpoint azurerm create --azure-rm-service-principal-id $SP_ID --azure-rm-subscription-id $SUBSCRIPTION_ID --azure-rm-subscription-name $SUBSCRIPTION_NAME --azure-rm-tenant-id $TENANT_ID --name "Azure Subscription"
     ```
     * Azure DevOps Portal:
