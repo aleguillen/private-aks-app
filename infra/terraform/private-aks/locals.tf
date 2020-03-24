@@ -12,6 +12,18 @@ locals {
   aks_private_dns_link_name = "${var.prefix}-${var.environment_name}-aks-dns-link"
 
   acr_name = "${var.prefix}${var.environment_name}acr"
+
+  acr_bastion_private_link_endpoint_name = "${var.prefix}-${var.environment_name}-acr-bastion-pe"
+
+  acr_bastion_private_link_endpoint_connection_name = "${var.prefix}-${var.environment_name}-acr-bastion-connection"
+
+  acr_private_link_endpoint_name = "${var.prefix}-${var.environment_name}-acr-pe"
+
+  acr_private_link_endpoint_connection_name = "${var.prefix}-${var.environment_name}-aks-connection"
+  
+  acr_bastion_private_dns_link_name = "${var.prefix}-${var.environment_name}-acr-bastion-dns-link"
+  
+  acr_private_dns_link_name = "${var.prefix}-${var.environment_name}-acr-dns-link"
   
   aks_rg_name = "MC_${local.rg_name}_${local.aks_name}_${var.location}"
 

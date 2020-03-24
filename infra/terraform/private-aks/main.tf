@@ -48,10 +48,10 @@ resource "azurerm_subnet" "default" {
   resource_group_name  = azurerm_resource_group.k8s.name
   virtual_network_name = azurerm_virtual_network.k8s.name
   address_prefix       = "192.168.1.0/24"
+
+  enforce_private_link_endpoint_network_policies = true
   
-  service_endpoints = [
-    "Microsoft.ContainerRegistry"
-  ]
+  service_endpoints = []
 }
 
 resource "random_id" "log_analytics_workspace_name_suffix" {
@@ -73,7 +73,6 @@ resource "azurerm_log_analytics_workspace" "monitor" {
   )
 }
 
-
 resource "azurerm_log_analytics_solution" "monitor" {
   solution_name         = "ContainerInsights"
   location              = azurerm_log_analytics_workspace.monitor.location
@@ -87,6 +86,8 @@ resource "azurerm_log_analytics_solution" "monitor" {
   }
 }
 
+# ACR and Private Link doc: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-private-link
+# ACR must be Premium
 resource "azurerm_container_registry" "acr" {
   name                     = local.acr_name
   resource_group_name      = azurerm_resource_group.k8s.name
@@ -95,16 +96,6 @@ resource "azurerm_container_registry" "acr" {
 
   network_rule_set {
     default_action = "Deny"
-
-    virtual_network {
-      action = "Allow"
-      subnet_id = azurerm_subnet.default.id
-    }
-    
-    virtual_network {
-      action = "Allow"
-      subnet_id = var.ado_subnet_id
-    }
   }
 
   tags = merge(
@@ -114,6 +105,143 @@ resource "azurerm_container_registry" "acr" {
     }
   )
 }
+
+# Private Endpoint Subnet and VNET from Bastion to ACR
+data "azurerm_subnet" "pe_acr" {
+  name                 = var.pe_subnet_name
+  resource_group_name  = var.pe_rg_name
+  virtual_network_name = var.pe_vnet_name
+}
+
+data "azurerm_virtual_network" "pe_acr" {
+  resource_group_name = var.pe_rg_name
+  name = var.pe_vnet_name
+}
+
+# Update PE Subnet - setting enforce_private_link_endpoint_network_policies to true
+resource "azurerm_subnet" "pe_acr" {
+  name                                                     = data.azurerm_subnet.pe_acr.name
+  resource_group_name                                      = data.azurerm_subnet.pe_acr.resource_group_name
+  virtual_network_name                                     = data.azurerm_subnet.pe_acr.virtual_network_name
+  address_prefix                                           = data.azurerm_subnet.pe_acr.address_prefix
+  service_endpoints                                        = data.azurerm_subnet.pe_acr.service_endpoints
+  ip_configurations                                        = data.azurerm_subnet.pe_acr.ip_configurations
+  enforce_private_link_service_network_policies            = data.azurerm_subnet.pe_acr.enforce_private_link_service_network_policies 
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+# Create PE from Bastion VNET to ACR
+resource "azurerm_private_endpoint" "pe_acr_bastion" {
+  name                = local.acr_bastion_private_link_endpoint_name
+  location            = azurerm_resource_group.k8s.location
+  resource_group_name = var.pe_rg_name
+
+  subnet_id           = azurerm_subnet.pe_acr.id
+  
+  private_service_connection {
+    is_manual_connection = var.pe_is_manual_connection
+    request_message = var.pe_is_manual_connection == "true" ? var.pe_request_message : null
+    name = local.acr_bastion_private_link_endpoint_connection_name
+    private_connection_resource_id = azurerm_container_registry.acr.id
+    subresource_names = ["registry"]
+  }
+}
+
+data "azurerm_private_endpoint_connection" "pe_acr" {
+  name                = local.acr_bastion_private_link_endpoint_name
+  resource_group_name = var.pe_rg_name
+
+  depends_on = [
+    azurerm_private_endpoint.pe_acr
+  ]
+}
+
+# Create PE from AKS VNET to ACR
+resource "azurerm_private_endpoint" "pe_acr_aks" {
+  name                = local.acr_private_link_endpoint_name
+  location            = azurerm_resource_group.k8s.location
+  resource_group_name = azurerm_resource_group.k8s.name
+
+  subnet_id           = azurerm_subnet.default.id
+  
+  private_service_connection {
+    is_manual_connection = var.pe_is_manual_connection
+    request_message = var.pe_is_manual_connection == "true" ? var.pe_request_message : null
+    name = local.acr_private_link_endpoint_connection_name
+    private_connection_resource_id = azurerm_container_registry.acr.id
+    subresource_names = ["registry"]
+  }
+}
+
+data "azurerm_private_endpoint_connection" "pe_acr_aks" {
+  name                = local.acr_private_link_endpoint_name
+  resource_group_name = azurerm_resource_group.k8s.name
+
+  depends_on = [
+    azurerm_private_endpoint.pe_acr_aks
+  ]
+}
+
+# Private DNS Zone for Bastion VNET
+resource "azurerm_private_dns_zone" "private_dns_acr" {
+  name                = "privatelink.azurecr.io"  
+  resource_group_name = var.pe_rg_name
+}
+
+resource "azurerm_private_dns_a_record" "registry_record" {
+  name                = azurerm_container_registry.acr.name
+  zone_name           = azurerm_private_dns_zone.private_dns_acr.name
+  resource_group_name = var.pe_rg_name
+  ttl                 = 3600
+  records             = [data.azurerm_private_endpoint_connection.pe_acr.private_service_connection.0.private_ip_address]
+}
+
+resource "azurerm_private_dns_a_record" "registry_record2" {
+  name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
+  zone_name           = azurerm_private_dns_zone.private_dns_acr.name
+  resource_group_name = var.pe_rg_name
+  ttl                 = 3600
+  records             = [data.azurerm_private_endpoint_connection.pe_acr.private_service_connection.0.private_ip_address]
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_bastion" {
+  name                  = local.acr_bastion_private_dns_link_name
+  resource_group_name   = var.pe_rg_name
+  private_dns_zone_name = azurerm_private_dns_zone.private_dns_acr.name
+  virtual_network_id    = data.azurerm_virtual_network.pe_acr.id
+}
+
+# Private DNS Zone for AKS VNET
+resource "azurerm_private_dns_zone" "private_dns_acr_aks" {
+  name                = "privatelink.azurecr.io"  
+  resource_group_name = azurerm_resource_group.k8s.name
+}
+
+resource "azurerm_private_dns_a_record" "registry_record_aks" {
+  name                = azurerm_container_registry.acr.name
+  zone_name           = azurerm_private_dns_zone.private_dns_acr_aks.name
+  resource_group_name = azurerm_resource_group.k8s.name
+  ttl                 = 3600
+  records             = [data.azurerm_private_endpoint_connection.pe_acr_aks.private_service_connection.0.private_ip_address]
+}
+
+resource "azurerm_private_dns_a_record" "registry_record2_aks" {
+  name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
+  zone_name           = azurerm_private_dns_zone.private_dns_acr_aks.name
+  resource_group_name = azurerm_resource_group.k8s.name
+  ttl                 = 3600
+  records             = [data.azurerm_private_endpoint_connection.pe_acr_aks.private_service_connection.0.private_ip_address]
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_aks" {
+  name                  = local.acr_private_dns_link_name
+  resource_group_name   = azurerm_resource_group.k8s.name
+  private_dns_zone_name = azurerm_private_dns_zone.private_dns_acr_aks.name
+  virtual_network_id    = azurerm_virtual_network.k8s.id
+}
+
+# AKS Cluster - Doc: 
 
 resource "azurerm_kubernetes_cluster" "k8s" {
   name                = local.aks_name
