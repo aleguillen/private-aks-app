@@ -8,6 +8,11 @@ terraform {
   }
 }
 
+provider "azurerm" {
+  version = "~> 2.2"
+  features {}
+}
+
 # Create Resource Group
 resource "azurerm_resource_group" "k8s" {
   name      = local.rg_name
@@ -125,7 +130,7 @@ resource "azurerm_subnet" "pe_acr" {
   virtual_network_name                                     = data.azurerm_subnet.pe_acr.virtual_network_name
   address_prefix                                           = data.azurerm_subnet.pe_acr.address_prefix
   service_endpoints                                        = data.azurerm_subnet.pe_acr.service_endpoints
-  ip_configurations                                        = data.azurerm_subnet.pe_acr.ip_configurations
+  // ip_configurations                                        = data.azurerm_subnet.pe_acr.ip_configurations
   enforce_private_link_service_network_policies            = data.azurerm_subnet.pe_acr.enforce_private_link_service_network_policies 
 
   enforce_private_link_endpoint_network_policies = true
@@ -153,7 +158,7 @@ data "azurerm_private_endpoint_connection" "pe_acr" {
   resource_group_name = var.pe_rg_name
 
   depends_on = [
-    azurerm_private_endpoint.pe_acr
+    azurerm_private_endpoint.pe_acr_bastion
   ]
 }
 
@@ -327,7 +332,7 @@ resource "azurerm_subnet" "pe" {
   virtual_network_name                                     = data.azurerm_subnet.pe.virtual_network_name
   address_prefix                                           = data.azurerm_subnet.pe.address_prefix
   service_endpoints                                        = data.azurerm_subnet.pe.service_endpoints
-  ip_configurations                                        = data.azurerm_subnet.pe.ip_configurations
+  # ip_configurations                                        = data.azurerm_subnet.pe.ip_configurations
   enforce_private_link_service_network_policies            = data.azurerm_subnet.pe.enforce_private_link_service_network_policies 
 
   enforce_private_link_endpoint_network_policies = true
