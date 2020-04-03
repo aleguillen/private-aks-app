@@ -3,9 +3,8 @@ output "acr_id" {
 }
 
 output "pe_acr_subnet" {
-  value = data.azurerm_subnet.example.id
+  value = data.azurerm_subnet.pe_acr.id
 }
-data.azurerm_subnet.example.id
 
 output "aks_private_fqdn" {
   value = azurerm_kubernetes_cluster.k8s.private_fqdn
