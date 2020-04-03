@@ -4,5 +4,7 @@
 #   git remote add upstream <upstream-repo-url>
 
 git fetch upstream
+# Discard local changes
+# git reset --hard
 git merge upstream/master
 git push origin master
