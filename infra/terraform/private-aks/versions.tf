@@ -9,6 +9,5 @@ terraform {
 }
 
 provider "azurerm" {
-  version = "~> 2.2"
-  features {}
+  version = "= 1.44"
 }

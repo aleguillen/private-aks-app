@@ -7,7 +7,7 @@ Deploy ACR with a service endpoint. Access ingress controller through private en
 ## Pre-requisites
 
 * Azure CLI version 2.0.77 or later, and the Azure CLI AKS Preview extension version 0.4.18
-* Terraform version 0.12 or later, and AzureRM Provider 1.39 or later.
+* Terraform version 0.12.20 or later.
 * Azure DevOps project and Git repo.
 * Install Azure DevOps Extension.
 ```bash
