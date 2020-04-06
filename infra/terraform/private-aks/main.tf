@@ -84,10 +84,6 @@ resource "azurerm_container_registry" "acr" {
   location                 = azurerm_resource_group.k8s.location
   sku                      = "Premium"
 
-  network_rule_set {
-    default_action = "Deny"
-  }
-
   tags = merge(
     local.common_tags, 
     {
