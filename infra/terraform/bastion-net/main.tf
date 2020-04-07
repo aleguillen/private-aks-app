@@ -41,6 +41,13 @@ resource "azurerm_subnet" "default" {
   resource_group_name  = azurerm_resource_group.bastion.name
   virtual_network_name = azurerm_virtual_network.bastion.name
   address_prefix       = "10.0.1.0/24"
+
+  lifecycle {
+    ignore_changes = [ 
+      enforce_private_link_service_network_policies,
+      enforce_private_link_endpoint_network_policies 
+    ]
+  }
 }
 
 resource "azurerm_subnet_network_security_group_association" "default" {
@@ -53,6 +60,13 @@ resource "azurerm_subnet" "bastion" {
   resource_group_name  = azurerm_resource_group.bastion.name
   virtual_network_name = azurerm_virtual_network.bastion.name
   address_prefix       = "10.0.2.0/24"
+  
+  lifecycle {
+    ignore_changes = [ 
+      enforce_private_link_service_network_policies,
+      enforce_private_link_endpoint_network_policies 
+    ]
+  }
 }
 
 resource "azurerm_subnet" "ado" {
@@ -64,6 +78,13 @@ resource "azurerm_subnet" "ado" {
   service_endpoints = [
     "Microsoft.ContainerRegistry"
   ]
+  
+  lifecycle {
+    ignore_changes = [ 
+      enforce_private_link_service_network_policies,
+      enforce_private_link_endpoint_network_policies 
+    ]
+  }
 }
 
 # Azure Bastion Host setup
