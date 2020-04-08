@@ -182,6 +182,15 @@ data "azurerm_virtual_network" "pe" {
   name = var.pe_vnet_name
 }
 
+resource "null_resource" "import_pe_subnet" {
+  provisioner "local-exec" {
+    command = "terraform import azurerm_subnet.pe $SUBNET_ID"
+    environment = {
+      SUBNET_ID = data.azurerm_subnet.pe.id
+    }
+  }
+}
+
 # Update PE Subnet - setting disable private endpoint network policies to true
 resource "azurerm_subnet" "pe" {
   name                                                     = data.azurerm_subnet.pe.name
