@@ -193,6 +193,10 @@ resource "azurerm_subnet" "pe" {
   enforce_private_link_service_network_policies            = data.azurerm_subnet.pe.enforce_private_link_service_network_policies 
 
   enforce_private_link_endpoint_network_policies = true
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "azurerm_private_endpoint" "pe" {
