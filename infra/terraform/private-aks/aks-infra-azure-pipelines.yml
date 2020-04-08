@@ -170,6 +170,10 @@ stages:
             azureSubscription: ${{ variables.ado_service_connection_name }}
             scriptLocation: inlineScript
             inlineScript: |
+              set RESOURCE_GROUP_NAME=$(terraformstoragerg)
+              set STORAGE_ACCOUNT_NAME=$(terraformstorageaccount)
+              set CONTAINER_NAME=terraform
+              set ACCOUNT_KEY=$(az storage account keys list --resource-group $RESOURCE_GROUP_NAME --account-name $STORAGE_ACCOUNT_NAME --query [0].value -o tsv)
 
               terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
         
