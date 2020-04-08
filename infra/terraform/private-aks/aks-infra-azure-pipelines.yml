@@ -164,6 +164,16 @@ stages:
             backendAzureRmContainerName: terraform
             backendAzureRmKey: terraform.tfstate
 
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to Import Azure Resources into TFSTATE'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptLocation: inlineScript
+            inlineScript: |
+              set SUBNET_ID=$(az network vnet subnet show $(pe_subnet_name) --name --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
+              
+              terraform import azurerm_subnet.pe $SUBNET_ID
+        
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : plan'
           inputs:
