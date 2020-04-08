@@ -172,20 +172,21 @@ stages:
               echo $STORAGE_ACCOUNT_NAME
               echo $CONTAINER_NAME
               echo $ACCOUNT_KEY
+              terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
           env:
             RESOURCE_GROUP_NAME: $(terraformstoragerg)
             STORAGE_ACCOUNT_NAME: $(terraformstorageaccount)
             CONTAINER_NAME: "terraform"
             ACCOUNT_KEY: $(storagekey)
 
-        - task: AzureCLI@1
-          displayName: 'Azure CLI to Import Azure Resources into TFSTATE'
-          inputs:
-            azureSubscription: ${{ variables.ado_service_connection_name }}
-            scriptLocation: inlineScript
-            inlineScript: |
-            
-              terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
+        # - task: AzureCLI@1
+        #   displayName: 'Azure CLI to Import Azure Resources into TFSTATE'
+        #   inputs:
+        #     azureSubscription: ${{ variables.ado_service_connection_name }}
+        #     scriptLocation: inlineScript
+        #     inlineScript: |
+
+        #       terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
         
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : plan'
