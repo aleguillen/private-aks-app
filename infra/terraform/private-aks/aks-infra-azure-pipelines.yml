@@ -158,24 +158,25 @@ stages:
           displayName: 'Terraform : init'
           inputs:
             workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra/terraform'
+            commandOptions: '-allow-missing-config'
             backendServiceArm: ${{ variables.ado_service_connection_name }}
             backendAzureRmResourceGroupName: '$(terraformstoragerg)'
             backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
             backendAzureRmContainerName: terraform
             backendAzureRmKey: terraform.tfstate
 
-        - task: AzureCLI@1
-          displayName: 'Azure CLI to Import Azure Resources into TFSTATE'
-          inputs:
-            azureSubscription: ${{ variables.ado_service_connection_name }}
-            scriptLocation: inlineScript
-            inlineScript: |
-              set RESOURCE_GROUP_NAME=$(terraformstoragerg)
-              set STORAGE_ACCOUNT_NAME=$(terraformstorageaccount)
-              set CONTAINER_NAME=terraform
-              set ACCOUNT_KEY=$(az storage account keys list --resource-group $(terraformstoragerg) --account-name $(terraformstorageaccount) --query [0].value -o tsv)
+        # - task: AzureCLI@1
+        #   displayName: 'Azure CLI to Import Azure Resources into TFSTATE'
+        #   inputs:
+        #     azureSubscription: ${{ variables.ado_service_connection_name }}
+        #     scriptLocation: inlineScript
+        #     inlineScript: |
+        #       set RESOURCE_GROUP_NAME=$(terraformstoragerg)
+        #       set STORAGE_ACCOUNT_NAME=$(terraformstorageaccount)
+        #       set CONTAINER_NAME=terraform
+        #       set ACCOUNT_KEY=$(az storage account keys list --resource-group $(terraformstoragerg) --account-name $(terraformstorageaccount) --query [0].value -o tsv)
 
-              terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
+        #       terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
         
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : plan'
