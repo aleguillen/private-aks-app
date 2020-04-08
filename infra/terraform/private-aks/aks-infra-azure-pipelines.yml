@@ -95,6 +95,8 @@ stages:
               az provider register --namespace Microsoft.ContainerService
               
               az provider register --namespace Microsoft.Network
+
+              az provider register --namespace Microsoft.ContainerRegistry
         
         - task: AzureCLI@1
           displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
@@ -103,18 +105,18 @@ stages:
             scriptLocation: inlineScript
             inlineScript: |
               # Create Azure resource group
-              az group create --location $(location) --name $(terraformstoragerg)
+              az group create --location $(location) --name $(terraformstoragerg) --verbose
               
               # Create Azure Storage Account
-              az storage account create --name $(terraformstorageaccount) --resource-group $(terraformstoragerg) --location $(location) --sku Standard_LRS --kind StorageV2
+              az storage account create --name $(terraformstorageaccount) --resource-group $(terraformstoragerg) --location $(location) --sku Standard_LRS --kind StorageV2 --verbose
               
               # Create Storage Container
-              az storage container create --name terraform --account-name $(terraformstorageaccount)
+              az storage container create --name terraform --account-name $(terraformstorageaccount) --verbose
               
               # Create and set Private Endpoint connection to Storage Account
-              az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
+              az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true --verbose
 
-              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv) --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false
+              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv) --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false --verbose
               
               # Get Storage Key
               set KEY=$(az storage account keys list -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "[0].value" -o tsv)

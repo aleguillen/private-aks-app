@@ -29,7 +29,7 @@ The purpose of this sample is to create an end to end solution to connect to app
 
 This is a sample architecture. Let's break it down:
 
-### Bastion Deployment Overview - [/infra/terraform/bastion-net](/infra/terraform/bastion-net)
+### [Bastion Deployment Overview](/infra/terraform/bastion-net)
 
 * Connects to on-premises via [Azure ExpressRoute](https://azure.microsoft.com/en-us/services/expressroute/) - this is not required or configured in this sample, however it's meant to show case the availability for access your private application from on-premises due to the ExpressRoute connection.
 * JumpServer VM - this server uses [Azure Bastion](https://azure.microsoft.com/en-us/services/azure-bastion/) to fully manage and connect via RDP and/or SSH privately fom the Azure portal.
@@ -53,7 +53,7 @@ This is a sample architecture. Let's break it down:
         sudo echo "127.0.0.1    localhost" | sudo tee -a /etc/hosts
         ```
 
-### Private AKS Deployment Overview - [/infra/terraform/bastion-net](/infra/terraform/private-aks)
+### [Private AKS Deployment Overview](/infra/terraform/private-aks)
 
 * [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-intro) - managed, private Docker registry service based on Docker Registry 2.0. In this case we will be restricting access to ACR using virtual network firewall rules and service endpoints, for more information see [here](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-vnet)
 * [Private Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/private-clusters) - by using a private cluster with internal IP you can ensure that network traffic remains inside the network.
