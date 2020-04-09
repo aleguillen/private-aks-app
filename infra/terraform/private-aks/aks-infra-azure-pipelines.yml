@@ -203,6 +203,7 @@ stages:
               echo $CONTAINER_NAME
               echo $ACCOUNT_KEY
               echo $KEY
+              echo $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
               terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
           env:
             RESOURCE_GROUP_NAME: $(terraformstoragerg)
