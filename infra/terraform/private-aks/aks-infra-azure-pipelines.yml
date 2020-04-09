@@ -104,11 +104,11 @@ stages:
             azureSubscription: ${{ variables.ado_service_connection_name }}
             scriptLocation: inlineScript
             inlineScript: |
-              echo "Create Azure resource group"
-              az group create --location $(location) --name $(terraformstoragerg)
+              echo "Create Azure resource group - $(terraformstoragerg)"
+              az group create -l $(location) -n $(terraformstoragerg)
               
-              echo "Create Azure Storage Account"
-              az storage account create --name $(terraformstorageaccount) --resource-group $(terraformstoragerg) --location $(location) --sku Standard_LRS --kind StorageV2
+              echo "Create Azure Storage Account $(terraformstorageaccount) - $(location)"
+              az storage account create -n $(terraformstorageaccount) -g $(terraformstoragerg) -l $(location) --sku Standard_LRS --kind StorageV2
               
               echo "Create Storage Container"
               az storage container create --name terraform --account-name $(terraformstorageaccount)
