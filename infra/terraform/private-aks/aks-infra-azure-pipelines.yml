@@ -135,6 +135,32 @@ stages:
               # Set Service Principal ID as Variable for later use
               echo "##vso[task.setvariable variable=aks_service_principal_id]$(az ad app show --id $(aks_service_principal_client_id) --query "objectId" -o tsv))"
               
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptLocation: inlineScript
+            inlineScript: |
+              echo "Create Azure resource group - $(terraformstoragerg)"
+              az group create -l $(location) -n $(terraformstoragerg)
+              
+              echo "Create Azure Storage Account $(terraformstorageaccount) - $(location)"
+              az storage account create -n $(terraformstorageaccount) -g $(terraformstoragerg) -l $(location) --sku Standard_LRS --kind StorageV2
+              
+              echo "Create Storage Container"
+              az storage container create --name terraform --account-name $(terraformstorageaccount)
+              
+              echo "Create and set Private Endpoint connection to Storage Account"
+              az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
+
+              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv) --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false
+              
+              echo "Get Storage Key"
+              set KEY=$(az storage account keys list -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "[0].value" -o tsv)
+              
+              echo "Set Storage Key as Variable for later use"
+              echo "##vso[task.setvariable variable=storagekey]$KEY"
+        
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in terraform file'
           inputs:
@@ -165,6 +191,25 @@ stages:
             backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
             backendAzureRmContainerName: terraform
             backendAzureRmKey: terraform.tfstate
+
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to Import Azure Resources into TFSTATE'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptLocation: inlineScript
+            inlineScript: |
+              echo $RESOURCE_GROUP_NAME
+              echo $STORAGE_ACCOUNT_NAME
+              echo $CONTAINER_NAME
+              echo $ACCOUNT_KEY
+              echo $KEY
+              terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
+          env:
+            RESOURCE_GROUP_NAME: $(terraformstoragerg)
+            STORAGE_ACCOUNT_NAME: $(terraformstorageaccount)
+            ACCOUNT_KEY: $(storagekey)
+            CONTAINER_NAME: "terraform"
+            KEY: "terraform.tfstate"
 
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : plan'

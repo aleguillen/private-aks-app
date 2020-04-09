@@ -189,7 +189,6 @@ resource "azurerm_subnet" "pe" {
   virtual_network_name                                     = data.azurerm_subnet.pe.virtual_network_name
   address_prefix                                           = data.azurerm_subnet.pe.address_prefix
   service_endpoints                                        = data.azurerm_subnet.pe.service_endpoints
-  # ip_configurations                                        = data.azurerm_subnet.pe.ip_configurations
   enforce_private_link_service_network_policies            = data.azurerm_subnet.pe.enforce_private_link_service_network_policies 
 
   enforce_private_link_endpoint_network_policies = true
