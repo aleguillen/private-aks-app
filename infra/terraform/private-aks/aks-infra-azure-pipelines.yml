@@ -78,25 +78,25 @@ stages:
             azureSubscription: ${{ variables.ado_service_connection_name }}
             scriptLocation: inlineScript
             inlineScript: |
-              az extension add --name aks-preview
+              call az extension add --name aks-preview
               
               # Update the extension to make sure you have the latest version installed
               
-              az extension update --name aks-preview
+              call az extension update --name aks-preview
               
-              az feature register --name AKSPrivateLinkPreview --namespace Microsoft.ContainerService
+              call az feature register --name AKSPrivateLinkPreview --namespace Microsoft.ContainerService
               
-              az feature register --name MSIPreview --namespace Microsoft.ContainerService
+              call az feature register --name MSIPreview --namespace Microsoft.ContainerService
               
-              az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKSPrivateLinkPreview')].{Name:name,State:properties.state}"
+              call az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKSPrivateLinkPreview')].{Name:name,State:properties.state}"
               
-              az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/MSIPreview')].{Name:name,State:properties.state}"
+              call az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/MSIPreview')].{Name:name,State:properties.state}"
               
-              az provider register --namespace Microsoft.ContainerService
+              call az provider register --namespace Microsoft.ContainerService
               
-              az provider register --namespace Microsoft.Network
+              call az provider register --namespace Microsoft.Network
 
-              az provider register --namespace Microsoft.ContainerRegistry
+              call az provider register --namespace Microsoft.ContainerRegistry
         
         - task: AzureCLI@1
           displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
@@ -105,21 +105,21 @@ stages:
             scriptLocation: inlineScript
             inlineScript: |
               echo "Create Azure resource group"
-              az group create --location $(location) --name $(terraformstoragerg)
+              call az group create --location $(location) --name $(terraformstoragerg)
               
               echo "Create Azure Storage Account"
-              az storage account create --name $(terraformstorageaccount) --resource-group $(terraformstoragerg) --location $(location) --sku Standard_LRS --kind StorageV2
+              call az storage account create --name $(terraformstorageaccount) --resource-group $(terraformstoragerg) --location $(location) --sku Standard_LRS --kind StorageV2
               
               echo "Create Storage Container"
-              az storage container create --name terraform --account-name $(terraformstorageaccount)
+              call az storage container create --name terraform --account-name $(terraformstorageaccount)
               
               echo "Create and set Private Endpoint connection to Storage Account"
-              az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
+              call az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
 
-              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv) --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false
+              call az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $(call az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv) --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false
               
               echo "Get Storage Key"
-              set KEY=$(az storage account keys list -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "[0].value" -o tsv)
+              set KEY=$(call az storage account keys list -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "[0].value" -o tsv)
               
               echo "Set Storage Key as Variable for later use"
               echo "##vso[task.setvariable variable=storagekey]$KEY"
@@ -133,7 +133,7 @@ stages:
             scriptLocation: inlineScript
             inlineScript: |
               # Set Service Principal ID as Variable for later use
-              echo "##vso[task.setvariable variable=aks_service_principal_id]$(az ad app show --id $(aks_service_principal_client_id) --query "objectId" -o tsv))"
+              echo "##vso[task.setvariable variable=aks_service_principal_id]$(call az ad app show --id $(aks_service_principal_client_id) --query "objectId" -o tsv))"
               
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in terraform file'
