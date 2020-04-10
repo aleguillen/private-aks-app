@@ -183,6 +183,16 @@ stages:
           inputs:
             terraformVersion: 0.12.24
 
+        - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+          displayName: 'Terraform : init'
+          inputs:
+            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra/terraform'
+            backendServiceArm: ${{ variables.ado_service_connection_name }}
+            backendAzureRmResourceGroupName: '$(terraformstoragerg)'
+            backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
+            backendAzureRmContainerName: terraform
+            backendAzureRmKey: terraform.tfstate
+            
         - task: AzureCLI@1
           displayName: 'Azure CLI to Import Azure Resources into TFSTATE'
           inputs:
@@ -193,6 +203,17 @@ stages:
             workingDirectory: $(System.DefaultWorkingDirectory)/_artifacts/infra/terraform
             inlineScript: |
               # Setting terraform config
+
+              export storage_account_name=$(terraformstorageaccount)
+              export container_name=terraform 
+              export key=terraform.tfstate 
+              export access_key=$(storagekey) 
+              export resource_group_name=$(terraformstoragerg) 
+              export arm_subscription_id=$(az account show --query "id" -o tsv) 
+              export arm_tenant_id=$tenantId 
+              export arm_client_id=$servicePrincipalId 
+              export arm_client_secret=$servicePrincipalKey 
+
               terraform init -backend-config=storage_account_name=$(terraformstorageaccount) -backend-config=container_name=terraform -backend-config=key=terraform.tfstate -backend-config=access_key=$(storagekey) -backend-config=resource_group_name=$(terraformstoragerg) -backend-config=arm_subscription_id=$(az account show --query "id" -o tsv) -backend-config=arm_tenant_id=$tenantId -backend-config=arm_client_id=$servicePrincipalId -backend-config=arm_client_secret=$servicePrincipalKey 
 
               echo $storage_account_name
@@ -207,15 +228,6 @@ stages:
               # Import resource
               terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
 
-        - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
-          displayName: 'Terraform : init'
-          inputs:
-            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra/terraform'
-            backendServiceArm: ${{ variables.ado_service_connection_name }}
-            backendAzureRmResourceGroupName: '$(terraformstoragerg)'
-            backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
-            backendAzureRmContainerName: terraform
-            backendAzureRmKey: terraform.tfstate
 
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : plan'
