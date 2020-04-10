@@ -193,8 +193,17 @@ stages:
             workingDirectory: $(System.DefaultWorkingDirectory)/_artifacts/infra/terraform
             inlineScript: |
               # Setting terraform config
-              terraform init -backend-config=storage_account_name=$(terraformstorageaccount) -backend-config=container_name=terraform -backend-config=key=terraform.tfstate -backend-config=resource_group_name=$(terraformstoragerg) -backend-config=arm_subscription_id=$(az account show --query "id" -o tsv) -backend-config=arm_tenant_id=$tenantId -backend-config=arm_client_id=$servicePrincipalId -backend-config=arm_client_secret=$servicePrincipalKey 
+              terraform init -backend-config=storage_account_name=$(terraformstorageaccount) -backend-config=container_name=terraform -backend-config=key=terraform.tfstate -backend-config=access_key=$(storagekey) -backend-config=resource_group_name=$(terraformstoragerg) -backend-config=arm_subscription_id=$(az account show --query "id" -o tsv) -backend-config=arm_tenant_id=$tenantId -backend-config=arm_client_id=$servicePrincipalId -backend-config=arm_client_secret=$servicePrincipalKey 
 
+              echo $storage_account_name
+              echo $container_name
+              echo $key
+              echo $resource_group_name
+              echo $arm_subscription_id
+              echo $arm_tenant_id
+              echo $arm_client_id
+              echo $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
+              
               # Import resource
               terraform import azurerm_subnet.pe $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv)
 
