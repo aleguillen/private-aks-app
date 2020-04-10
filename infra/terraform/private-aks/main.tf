@@ -204,7 +204,7 @@ resource "azurerm_private_endpoint" "pe" {
   location            = azurerm_resource_group.k8s.location
   resource_group_name = var.pe_rg_name
 
-  subnet_id           = azurerm_subnet.pe.id
+  subnet_id           = data.azurerm_subnet.pe.id
   
   private_service_connection {
     is_manual_connection = var.pe_is_manual_connection
