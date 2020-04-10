@@ -305,24 +305,30 @@ data "azurerm_virtual_network" "pe" {
   name = var.pe_vnet_name
 }
 
-# Update PE Subnet - setting disable private endpoint network policies to true
-resource "azurerm_subnet" "pe" {
-  name                                                     = data.azurerm_subnet.pe.name
-  resource_group_name                                      = data.azurerm_subnet.pe.resource_group_name
-  virtual_network_name                                     = data.azurerm_subnet.pe.virtual_network_name
-  address_prefix                                           = data.azurerm_subnet.pe.address_prefix
-  service_endpoints                                        = data.azurerm_subnet.pe.service_endpoints
-  enforce_private_link_service_network_policies            = data.azurerm_subnet.pe.enforce_private_link_service_network_policies 
 
-  enforce_private_link_endpoint_network_policies = true
-}
+# Update PE Subnet - setting disable private endpoint network policies to true 
+# Moving to Azure CLI on previous step since terraform import is not working properly
+# resource "azurerm_subnet" "pe" {
+#   name                                                     = data.azurerm_subnet.pe.name
+#   resource_group_name                                      = data.azurerm_subnet.pe.resource_group_name
+#   virtual_network_name                                     = data.azurerm_subnet.pe.virtual_network_name
+#   address_prefix                                           = data.azurerm_subnet.pe.address_prefix
+#   service_endpoints                                        = data.azurerm_subnet.pe.service_endpoints
+#   enforce_private_link_service_network_policies            = data.azurerm_subnet.pe.enforce_private_link_service_network_policies 
+
+#   enforce_private_link_endpoint_network_policies = true
+
+#   lifecycle {
+#     prevent_destroy = true
+#   }
+# }
 
 resource "azurerm_private_endpoint" "pe" {
   name                = local.aks_private_link_endpoint_name
   location            = azurerm_resource_group.k8s.location
   resource_group_name = var.pe_rg_name
 
-  subnet_id           = azurerm_subnet.pe.id
+  subnet_id           = data.azurerm_subnet.pe.id
   
   private_service_connection {
     is_manual_connection = var.pe_is_manual_connection

@@ -95,6 +95,8 @@ stages:
               az provider register --namespace Microsoft.ContainerService
               
               az provider register --namespace Microsoft.Network
+
+              az provider register --namespace Microsoft.ContainerRegistry
         
         - task: AzureCLI@1
           displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
@@ -102,24 +104,24 @@ stages:
             azureSubscription: ${{ variables.ado_service_connection_name }}
             scriptLocation: inlineScript
             inlineScript: |
-              # Create Azure resource group
-              az group create --location $(location) --name $(terraformstoragerg)
+              echo "Create Azure resource group - $(terraformstoragerg)"
+              az group create -l $(location) -n $(terraformstoragerg)
               
-              # Create Azure Storage Account
-              az storage account create --name $(terraformstorageaccount) --resource-group $(terraformstoragerg) --location $(location) --sku Standard_LRS --kind StorageV2
+              echo "Create Azure Storage Account $(terraformstorageaccount) - $(location)"
+              az storage account create -n $(terraformstorageaccount) -g $(terraformstoragerg) -l $(location) --sku Standard_LRS --kind StorageV2
               
-              # Create Storage Container
+              echo "Create Storage Container"
               az storage container create --name terraform --account-name $(terraformstorageaccount)
               
-              # Create and set Private Endpoint connection to Storage Account
+              echo "Create and set Private Endpoint connection to Storage Account"
               az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
 
               az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv) --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false
               
-              # Get Storage Key
+              echo "Get Storage Key"
               set KEY=$(az storage account keys list -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "[0].value" -o tsv)
               
-              # Set Storage Key as Variable for later use
+              echo "Set Storage Key as Variable for later use"
               echo "##vso[task.setvariable variable=storagekey]$KEY"
         
         # This task is disabled and value is set in the variable group. Due to insuficient permissions issues of the service principal. 
@@ -133,6 +135,33 @@ stages:
               # Set Service Principal ID as Variable for later use
               echo "##vso[task.setvariable variable=aks_service_principal_id]$(az ad app show --id $(aks_service_principal_client_id) --query "objectId" -o tsv))"
               
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to deploy required Azure resources (Terraform State)'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptType: 'bash'
+            scriptLocation: inlineScript
+            inlineScript: |
+              echo "Create Azure resource group - $(terraformstoragerg)"
+              az group create -l $(location) -n $(terraformstoragerg)
+              
+              echo "Create Azure Storage Account $(terraformstorageaccount) - $(location)"
+              az storage account create -n $(terraformstorageaccount) -g $(terraformstoragerg) -l $(location) --sku Standard_LRS --kind StorageV2
+              
+              echo "Create Storage Container"
+              az storage container create --name terraform --account-name $(terraformstorageaccount)
+              
+              echo "Create and set Private Endpoint connection to Storage Account"
+              az network vnet subnet update --ids $(ado_subnet_id) --disable-private-endpoint-network-policies true
+
+              az network private-endpoint create --name "$(terraformstorageaccount)-pe" --resource-group $(terraformstoragerg) --subnet $(ado_subnet_id) --private-connection-resource-id $(az storage account show -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "id" -o tsv) --group-ids blob --connection-name "$(terraformstorageaccount)-blobconnection" --manual-request false
+              
+              echo "Get Storage Key"
+              set KEY=$(az storage account keys list -g $(terraformstoragerg) -n $(terraformstorageaccount) --query "[0].value" -o tsv)
+              
+              echo "Set Storage Key as Variable for later use"
+              echo "##vso[task.setvariable variable=storagekey]$KEY"
+        
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in terraform file'
           inputs:
@@ -154,6 +183,18 @@ stages:
           inputs:
             terraformVersion: 0.12.24
 
+        - task: AzureCLI@1
+          displayName: 'Azure CLI to enable Private Endpoint policies on Bastion Subnet'
+          inputs:
+            azureSubscription: ${{ variables.ado_service_connection_name }}
+            scriptType: 'bash'
+            addSpnToEnvironment: true
+            scriptLocation: inlineScript
+            workingDirectory: $(System.DefaultWorkingDirectory)/_artifacts/infra/terraform
+            inlineScript: |
+              # Update PE Subnet - setting disable private endpoint network policies to true 
+              az network vnet subnet update --ids $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv) --disable-private-endpoint-network-policies true 
+
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : init'
           inputs:
@@ -163,7 +204,7 @@ stages:
             backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
             backendAzureRmContainerName: terraform
             backendAzureRmKey: terraform.tfstate
-
+              
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : plan'
           inputs:
