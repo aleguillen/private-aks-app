@@ -105,15 +105,27 @@ data "azurerm_virtual_network" "pe_acr" {
 }
 
 # Update PE Subnet - setting enforce_private_link_endpoint_network_policies to true
-resource "azurerm_subnet" "pe_acr" {
-  name                                                     = data.azurerm_subnet.pe_acr.name
-  resource_group_name                                      = data.azurerm_subnet.pe_acr.resource_group_name
-  virtual_network_name                                     = data.azurerm_subnet.pe_acr.virtual_network_name
-  address_prefix                                           = data.azurerm_subnet.pe_acr.address_prefix
-  service_endpoints                                        = data.azurerm_subnet.pe_acr.service_endpoints
-  enforce_private_link_service_network_policies            = data.azurerm_subnet.pe_acr.enforce_private_link_service_network_policies 
+# resource "azurerm_subnet" "pe_acr" {
+#   name                                                     = data.azurerm_subnet.pe_acr.name
+#   resource_group_name                                      = data.azurerm_subnet.pe_acr.resource_group_name
+#   virtual_network_name                                     = data.azurerm_subnet.pe_acr.virtual_network_name
+#   address_prefix                                           = data.azurerm_subnet.pe_acr.address_prefix
+#   service_endpoints                                        = data.azurerm_subnet.pe_acr.service_endpoints
+#   enforce_private_link_service_network_policies            = data.azurerm_subnet.pe_acr.enforce_private_link_service_network_policies 
 
-  enforce_private_link_endpoint_network_policies = true
+#   enforce_private_link_endpoint_network_policies = true
+# }
+
+
+# Using Azure CLI since resource was not created in this template
+resource "null_resource" "azurerm_subnet_pe_acr" {
+  provisioner "local-exec" {
+    command = "az network vnet subnet update --ids $SUBNET_ID --disable-private-endpoint-network-policies true"
+
+    environment = {
+      SUBNET_ID = data.azurerm_subnet.pe_acr.id
+    }
+  }
 }
 
 # Create PE from Bastion VNET to ACR
@@ -122,7 +134,7 @@ resource "azurerm_private_endpoint" "pe_acr_bastion" {
   location            = azurerm_resource_group.k8s.location
   resource_group_name = var.pe_rg_name
 
-  subnet_id           = azurerm_subnet.pe_acr.id
+  subnet_id           = data.azurerm_subnet.pe_acr.id
   
   private_service_connection {
     is_manual_connection = var.pe_is_manual_connection
@@ -131,6 +143,10 @@ resource "azurerm_private_endpoint" "pe_acr_bastion" {
     private_connection_resource_id = azurerm_container_registry.acr.id
     subresource_names = ["registry"]
   }
+  
+  depends_on = [
+    null_resource.azurerm_subnet_pe_acr
+  ]
 }
 
 data "azurerm_private_endpoint_connection" "pe_acr" {
@@ -323,6 +339,17 @@ data "azurerm_virtual_network" "pe" {
 #   }
 # }
 
+# Using Azure CLI since resource was not created in this template
+resource "null_resource" "azurerm_subnet_pe" {
+  provisioner "local-exec" {
+    command = "az network vnet subnet update --ids $SUBNET_ID --disable-private-endpoint-network-policies true"
+
+    environment = {
+      SUBNET_ID = data.azurerm_subnet.pe.id
+    }
+  }
+}
+
 resource "azurerm_private_endpoint" "pe" {
   name                = local.aks_private_link_endpoint_name
   location            = azurerm_resource_group.k8s.location
@@ -337,6 +364,10 @@ resource "azurerm_private_endpoint" "pe" {
     private_connection_resource_id = azurerm_kubernetes_cluster.k8s.id
     subresource_names = ["management"]
   }
+
+  depends_on = [
+    null_resource.azurerm_subnet_pe
+  ]
 }
 
 data "azurerm_private_endpoint_connection" "pe" {
