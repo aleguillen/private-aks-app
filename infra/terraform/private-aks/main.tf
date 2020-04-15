@@ -186,7 +186,7 @@ resource "azurerm_private_dns_a_record" "registry_record" {
   zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
   resource_group_name = var.pe_rg_name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.bastion_acr_pe.private_service_connection.0.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.bastion_acr_pe.private_service_connection.1.private_ip_address]
 }
 
 resource "azurerm_private_dns_a_record" "registry_record2" {
@@ -217,7 +217,7 @@ resource "azurerm_private_dns_a_record" "registry_record_aks" {
   zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
   resource_group_name = azurerm_resource_group.k8s.name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.aks_acr_pe.private_service_connection.0.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.aks_acr_pe.private_service_connection.1.private_ip_address]
 }
 
 resource "azurerm_private_dns_a_record" "registry_record2_aks" {
