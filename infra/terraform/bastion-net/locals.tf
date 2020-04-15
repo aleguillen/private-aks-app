@@ -17,7 +17,7 @@ locals {
 
   ado_vm_name   = "${var.prefix}-${var.environment_name}-ado-vm"
   
-  ado_vm_computer_name   = "ado-vm"
+  ado_vm_computer_name   = "${var.prefix}-${var.environment_name}-ado"
   
   ado_vm_os_name   = "${var.prefix}-${var.environment_name}-ado-vm-osdisk"
 
