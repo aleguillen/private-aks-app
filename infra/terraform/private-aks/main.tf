@@ -319,7 +319,7 @@ resource "azurerm_private_endpoint" "bastion_aks_pe" {
   }
 }
 
-data "azurerm_private_endpoint_connection" "pe" {
+data "azurerm_private_endpoint_connection" "bastion_aks_pe" {
   name                = local.aks_private_link_endpoint_name
   resource_group_name = var.pe_rg_name
 

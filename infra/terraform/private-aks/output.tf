@@ -2,8 +2,8 @@ output "acr_id" {
   value = azurerm_container_registry.acr.id
 }
 
-output "pe_acr_subnet" {
-  value = data.azurerm_subnet.pe_acr.id
+output "bastion_subnet" {
+  value = data.azurerm_subnet.bastion_pe.id
 }
 
 output "aks_private_fqdn" {
