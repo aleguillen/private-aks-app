@@ -179,21 +179,9 @@ stages:
             tokenSuffix: '__'
 
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
-          displayName: 'Install Terraform 0.12.24'
+          displayName: 'Install Terraform 0.12.20'
           inputs:
-            terraformVersion: 0.12.24
-
-        - task: AzureCLI@1
-          displayName: 'Azure CLI to enable Private Endpoint policies on Bastion Subnet'
-          inputs:
-            azureSubscription: ${{ variables.ado_service_connection_name }}
-            scriptType: 'bash'
-            addSpnToEnvironment: true
-            scriptLocation: inlineScript
-            workingDirectory: $(System.DefaultWorkingDirectory)/_artifacts/infra/terraform
-            inlineScript: |
-              # Update PE Subnet - setting disable private endpoint network policies to true 
-              az network vnet subnet update --ids $(az network vnet subnet show --name $(pe_subnet_name) --resource-group $(pe_rg_name) --vnet-name $(pe_vnet_name) --query "id" -o tsv) --disable-private-endpoint-network-policies true 
+            terraformVersion: 0.12.20
 
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : init'
