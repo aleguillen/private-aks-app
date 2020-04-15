@@ -92,49 +92,40 @@ resource "azurerm_container_registry" "acr" {
   )
 }
 
-# Private Endpoint Subnet and VNET from Bastion to ACR
-data "azurerm_subnet" "pe_acr" {
+##
+# CREATE: Private Endpoint in Bastion Subnet to ACR
+##
+
+data "azurerm_subnet" "bastion_pe" {
   name                 = var.pe_subnet_name
   resource_group_name  = var.pe_rg_name
   virtual_network_name = var.pe_vnet_name
 }
 
-data "azurerm_virtual_network" "pe_acr" {
+data "azurerm_virtual_network" "bastion_pe" {
   resource_group_name = var.pe_rg_name
   name = var.pe_vnet_name
 }
 
 # Update PE Subnet - setting enforce_private_link_endpoint_network_policies to true
-# resource "azurerm_subnet" "pe_acr" {
-#   name                                                     = data.azurerm_subnet.pe_acr.name
-#   resource_group_name                                      = data.azurerm_subnet.pe_acr.resource_group_name
-#   virtual_network_name                                     = data.azurerm_subnet.pe_acr.virtual_network_name
-#   address_prefix                                           = data.azurerm_subnet.pe_acr.address_prefix
-#   service_endpoints                                        = data.azurerm_subnet.pe_acr.service_endpoints
-#   enforce_private_link_service_network_policies            = data.azurerm_subnet.pe_acr.enforce_private_link_service_network_policies 
+# Moved to Pipeline Azure CLI previous execution
+# resource "azurerm_subnet" "bastion_pe" {
+#   name                                                     = data.azurerm_subnet.bastion_pe.name
+#   resource_group_name                                      = data.azurerm_subnet.bastion_pe.resource_group_name
+#   virtual_network_name                                     = data.azurerm_subnet.bastion_pe.virtual_network_name
+#   address_prefix                                           = data.azurerm_subnet.bastion_pe.address_prefix
+#   service_endpoints                                        = data.azurerm_subnet.bastion_pe.service_endpoints
+#   enforce_private_link_service_network_policies            = data.azurerm_subnet.bastion_pe.enforce_private_link_service_network_policies 
 
 #   enforce_private_link_endpoint_network_policies = true
 # }
 
-
-# Using Azure CLI since resource was not created in this template
-resource "null_resource" "azurerm_subnet_pe_acr" {
-  provisioner "local-exec" {
-    command = "az network vnet subnet update --ids $SUBNET_ID --disable-private-endpoint-network-policies true"
-
-    environment = {
-      SUBNET_ID = data.azurerm_subnet.pe_acr.id
-    }
-  }
-}
-
-# Create PE from Bastion VNET to ACR
-resource "azurerm_private_endpoint" "pe_acr_bastion" {
+resource "azurerm_private_endpoint" "bastion_pe" {
   name                = local.acr_bastion_private_link_endpoint_name
   location            = azurerm_resource_group.k8s.location
   resource_group_name = var.pe_rg_name
 
-  subnet_id           = data.azurerm_subnet.pe_acr.id
+  subnet_id           = data.azurerm_subnet.bastion_pe.id
   
   private_service_connection {
     is_manual_connection = var.pe_is_manual_connection
@@ -143,23 +134,21 @@ resource "azurerm_private_endpoint" "pe_acr_bastion" {
     private_connection_resource_id = azurerm_container_registry.acr.id
     subresource_names = ["registry"]
   }
-  
-  depends_on = [
-    null_resource.azurerm_subnet_pe_acr
-  ]
 }
 
-data "azurerm_private_endpoint_connection" "pe_acr" {
+data "azurerm_private_endpoint_connection" "bastion_pe" {
   name                = local.acr_bastion_private_link_endpoint_name
   resource_group_name = var.pe_rg_name
 
   depends_on = [
-    azurerm_private_endpoint.pe_acr_bastion
+    azurerm_private_endpoint.bastion_pe
   ]
 }
 
-# Create PE from AKS VNET to ACR
-resource "azurerm_private_endpoint" "pe_acr_aks" {
+##
+# CREATE: Private Endpoint in AKS Subnet to ACR
+##
+resource "azurerm_private_endpoint" "aks_pe" {
   name                = local.acr_private_link_endpoint_name
   location            = azurerm_resource_group.k8s.location
   resource_group_name = azurerm_resource_group.k8s.name
@@ -175,81 +164,85 @@ resource "azurerm_private_endpoint" "pe_acr_aks" {
   }
 }
 
-data "azurerm_private_endpoint_connection" "pe_acr_aks" {
+data "azurerm_private_endpoint_connection" "aks_pe" {
   name                = local.acr_private_link_endpoint_name
   resource_group_name = azurerm_resource_group.k8s.name
 
   depends_on = [
-    azurerm_private_endpoint.pe_acr_aks
+    azurerm_private_endpoint.aks_pe
   ]
 }
 
-# Private DNS Zone for Bastion VNET
-resource "azurerm_private_dns_zone" "private_dns_acr" {
+##
+# CREATE: Private DNS Zone for ACR in Bastion VNET
+##
+resource "azurerm_private_dns_zone" "bastion_dns_zone" {
   name                = "privatelink.azurecr.io"  
   resource_group_name = var.pe_rg_name
 }
 
 resource "azurerm_private_dns_a_record" "registry_record" {
   name                = azurerm_container_registry.acr.name
-  zone_name           = azurerm_private_dns_zone.private_dns_acr.name
+  zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
   resource_group_name = var.pe_rg_name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.pe_acr.private_service_connection.0.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.bastion_pe.private_service_connection.0.private_ip_address]
 }
 
 resource "azurerm_private_dns_a_record" "registry_record2" {
   name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
-  zone_name           = azurerm_private_dns_zone.private_dns_acr.name
+  zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
   resource_group_name = var.pe_rg_name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.pe_acr.private_service_connection.0.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.bastion_pe.private_service_connection.0.private_ip_address]
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_bastion" {
   name                  = local.acr_bastion_private_dns_link_name
   resource_group_name   = var.pe_rg_name
-  private_dns_zone_name = azurerm_private_dns_zone.private_dns_acr.name
-  virtual_network_id    = data.azurerm_virtual_network.pe_acr.id
+  private_dns_zone_name = azurerm_private_dns_zone.bastion_dns_zone.name
+  virtual_network_id    = data.azurerm_virtual_network.bastion_pe.id
 }
 
-# Private DNS Zone for AKS VNET
-resource "azurerm_private_dns_zone" "private_dns_acr_aks" {
+##
+# CREATE: Private DNS Zone for ACR in AKS VNET
+##
+resource "azurerm_private_dns_zone" "aks_dns_zone" {
   name                = "privatelink.azurecr.io"  
   resource_group_name = azurerm_resource_group.k8s.name
 }
 
 resource "azurerm_private_dns_a_record" "registry_record_aks" {
   name                = azurerm_container_registry.acr.name
-  zone_name           = azurerm_private_dns_zone.private_dns_acr_aks.name
+  zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
   resource_group_name = azurerm_resource_group.k8s.name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.pe_acr_aks.private_service_connection.0.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.aks_pe.private_service_connection.0.private_ip_address]
 }
 
 resource "azurerm_private_dns_a_record" "registry_record2_aks" {
   name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
-  zone_name           = azurerm_private_dns_zone.private_dns_acr_aks.name
+  zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
   resource_group_name = azurerm_resource_group.k8s.name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.pe_acr_aks.private_service_connection.0.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.aks_pe.private_service_connection.0.private_ip_address]
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_aks" {
   name                  = local.acr_private_dns_link_name
   resource_group_name   = azurerm_resource_group.k8s.name
-  private_dns_zone_name = azurerm_private_dns_zone.private_dns_acr_aks.name
+  private_dns_zone_name = azurerm_private_dns_zone.aks_dns_zone.name
   virtual_network_id    = azurerm_virtual_network.k8s.id
 }
 
-# AKS Cluster - Doc: 
-
+##
+# CREATE: AKS Cluster
+##
 resource "azurerm_kubernetes_cluster" "k8s" {
   name                = local.aks_name
   resource_group_name = azurerm_resource_group.k8s.name
   location            = azurerm_resource_group.k8s.location
   dns_prefix          = local.aks_dns_prefix
-
 
   private_link_enabled = true
   
@@ -306,49 +299,9 @@ resource "azurerm_role_assignment" "subnet_role_assignment" {
   principal_id         = var.aks_service_principal_id
 }
 
-#
-# Create Private Endpoint and Private DNS Zone on the Bastion Deployment for connectivity
-#
-
-data "azurerm_subnet" "pe" {
-  name                 = var.pe_subnet_name
-  resource_group_name  = var.pe_rg_name
-  virtual_network_name = var.pe_vnet_name
-}
-
-data "azurerm_virtual_network" "pe" {
-  resource_group_name  = var.pe_rg_name
-  name = var.pe_vnet_name
-}
-
-
-# Update PE Subnet - setting disable private endpoint network policies to true 
-# Moving to Azure CLI on previous step since terraform import is not working properly
-# resource "azurerm_subnet" "pe" {
-#   name                                                     = data.azurerm_subnet.pe.name
-#   resource_group_name                                      = data.azurerm_subnet.pe.resource_group_name
-#   virtual_network_name                                     = data.azurerm_subnet.pe.virtual_network_name
-#   address_prefix                                           = data.azurerm_subnet.pe.address_prefix
-#   service_endpoints                                        = data.azurerm_subnet.pe.service_endpoints
-#   enforce_private_link_service_network_policies            = data.azurerm_subnet.pe.enforce_private_link_service_network_policies 
-
-#   enforce_private_link_endpoint_network_policies = true
-
-#   lifecycle {
-#     prevent_destroy = true
-#   }
-# }
-
-# Using Azure CLI since resource was not created in this template
-resource "null_resource" "azurerm_subnet_pe" {
-  provisioner "local-exec" {
-    command = "az network vnet subnet update --ids $SUBNET_ID --disable-private-endpoint-network-policies true"
-
-    environment = {
-      SUBNET_ID = data.azurerm_subnet.pe.id
-    }
-  }
-}
+##
+# CREATE: Private Endpoint and Private DNS Zone on the Bastion Deployment for connectivity
+##
 
 resource "azurerm_private_endpoint" "pe" {
   name                = local.aks_private_link_endpoint_name
@@ -364,10 +317,6 @@ resource "azurerm_private_endpoint" "pe" {
     private_connection_resource_id = azurerm_kubernetes_cluster.k8s.id
     subresource_names = ["management"]
   }
-
-  depends_on = [
-    null_resource.azurerm_subnet_pe
-  ]
 }
 
 data "azurerm_private_endpoint_connection" "pe" {
@@ -398,35 +347,3 @@ resource "azurerm_private_dns_zone_virtual_network_link" "example" {
   private_dns_zone_name = azurerm_private_dns_zone.privatedns.name
   virtual_network_id    = data.azurerm_virtual_network.pe.id
 }
-
-# Create Private Link Service using Terraform 
-
-# data "azurerm_lb" "k8s" {
-#   name                = "kubernetes-internal"
-#   resource_group_name = azurerm_kubernetes_cluster.k8s.node_resource_group 
-
-#   depends_on = [
-#     azurerm_kubernetes_cluster.k8s
-#   ]
-# }
-
-# resource "azurerm_private_link_service" "pls" {
-#   name                = local.aks_private_link_service_name
-#   location            = azurerm_resource_group.k8s.location
-#   resource_group_name = azurerm_resource_group.k8s.name
-  
-#   nat_ip_configuration {
-#     name               = "nat-config"
-#     subnet_id          = azurerm_subnet.proxy.id
-#     primary            = true
-#   }
-
-#   load_balancer_frontend_ip_configuration_ids = [data.azurerm_lb.k8s.frontend_ip_configuration.0.id] 
-
-#   tags = merge(
-#     local.common_tags, 
-#     {
-#         display_name = "Private Link Service for AKS"
-#     }
-#   )
-# }
