@@ -201,39 +201,57 @@ resource "azurerm_private_dns_zone" "bastion_dns_zone" {
 resource "null_resource" "acr_registries_record_bastion" {
   
   provisioner "local-exec" {
-    # Azure Login
-    command = "az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID"
-  }
-  
-  provisioner "local-exec" {
-    # Azure set Subscription Id
-    command = "az account set --subscription $ARM_SUBSCRIPTION_ID"
-  }
-  
-  provisioner "local-exec" {
-    # Get Private Endpoint Network Interface
-    command = "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.bastion_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)"
-  }
-
-  provisioner "local-exec" {
-    # Get Ip Configuration - ACR IP Address
-    command = "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)"
+    command = <<EOT
+      az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+      
+      az account set --subscription $ARM_SUBSCRIPTION_ID
+      
+      networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.bastion_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)
+      
+      privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)
+      
+      dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)
+      
+      az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP"
+      
+      az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP
+    EOT
   }
 
-  provisioner "local-exec" {
-    # Get Ip Configuration - ACR Data Endpoint IP Address
-    command = "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)"
-  }
-
-  provisioner "local-exec" {
-    # Create DNS record for ACR
-    command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP"
-  }
+  # provisioner "local-exec" {
+  #   # Azure Login
+  #   command = "az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID"
+  # }
   
-  provisioner "local-exec" {
-    # Create DNS record for ACR Data Endpoint
-    command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP"
-  }
+  # provisioner "local-exec" {
+  #   # Azure set Subscription Id
+  #   command = "az account set --subscription $ARM_SUBSCRIPTION_ID"
+  # }
+  
+  # provisioner "local-exec" {
+  #   # Get Private Endpoint Network Interface
+  #   command = "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.bastion_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)"
+  # }
+
+  # provisioner "local-exec" {
+  #   # Get Ip Configuration - ACR IP Address
+  #   command = "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)"
+  # }
+
+  # provisioner "local-exec" {
+  #   # Get Ip Configuration - ACR Data Endpoint IP Address
+  #   command = "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)"
+  # }
+
+  # provisioner "local-exec" {
+  #   # Create DNS record for ACR
+  #   command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP"
+  # }
+  
+  # provisioner "local-exec" {
+  #   # Create DNS record for ACR Data Endpoint
+  #   command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP"
+  # }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_bastion" {
@@ -270,39 +288,58 @@ resource "azurerm_private_dns_zone" "aks_dns_zone" {
 resource "null_resource" "acr_registries_record_aks" {
 
   provisioner "local-exec" {
-    # Azure Login
-    command = "az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID"
+    command = <<EOT
+      az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+      
+      az account set --subscription $ARM_SUBSCRIPTION_ID
+      
+      networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.aks_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)
+      
+      privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)
+      
+      dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)
+      
+      az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $privateIP
+      
+      az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $dataEndpointPrivateIP
+    EOT
   }
   
-  provisioner "local-exec" {
-    # Azure set Subscription Id
-    command = "az account set --subscription $ARM_SUBSCRIPTION_ID"
-  }
+
+  # provisioner "local-exec" {
+  #   # Azure Login
+  #   command = "az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID"
+  # }
   
-  provisioner "local-exec" {
-    # Get Private Endpoint Network Interface
-    command = "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.aks_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)"
-  }
-
-  provisioner "local-exec" {
-    # Get Ip Configuration - ACR IP Address
-    command = "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)"
-  }
-
-  provisioner "local-exec" {
-    # Get Ip Configuration - ACR Data Endpoint IP Address
-    command = "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)"
-  }
-
-  provisioner "local-exec" {
-    # Create DNS record for ACR
-    command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $privateIP"
-  }
+  # provisioner "local-exec" {
+  #   # Azure set Subscription Id
+  #   command = "az account set --subscription $ARM_SUBSCRIPTION_ID"
+  # }
   
-  provisioner "local-exec" {
-    # Create DNS record for ACR Data Endpoint
-    command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $dataEndpointPrivateIP"
-  }
+  # provisioner "local-exec" {
+  #   # Get Private Endpoint Network Interface
+  #   command = "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.aks_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)"
+  # }
+
+  # provisioner "local-exec" {
+  #   # Get Ip Configuration - ACR IP Address
+  #   command = "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)"
+  # }
+
+  # provisioner "local-exec" {
+  #   # Get Ip Configuration - ACR Data Endpoint IP Address
+  #   command = "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)"
+  # }
+
+  # provisioner "local-exec" {
+  #   # Create DNS record for ACR
+  #   command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $privateIP"
+  # }
+  
+  # provisioner "local-exec" {
+  #   # Create DNS record for ACR Data Endpoint
+  #   command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $dataEndpointPrivateIP"
+  # }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_aks" {
