@@ -198,17 +198,17 @@ resource "azurerm_private_dns_zone" "bastion_dns_zone" {
 # }
 
 
-resource "null_resource" "acr_registries_record_aks" {
+resource "null_resource" "acr_registries_record_bastion" {
   
   provisioner "remote-exec" {
     inline = [
       "az login --service-principal --username $clientId --password $secret --tenant $tenantId",
-      "az account set --subscription $subscription"
+      "az account set --subscription $subscription",
       "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.bastion_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)",
       "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)",
       "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)",
       "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP",
-      "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP",
+      "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP"
     ]
   }
 }
@@ -249,7 +249,7 @@ resource "null_resource" "acr_registries_record_aks" {
   provisioner "remote-exec" {
     inline = [
       "az login --service-principal --username $clientId --password $secret --tenant $tenantId",
-      "az account set --subscription $subscription"
+      "az account set --subscription $subscription",
       "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.aks_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)",
       "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)",
       "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)",
