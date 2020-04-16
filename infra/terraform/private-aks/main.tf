@@ -120,7 +120,7 @@ resource "null_resource" "azurerm_subnet_bastion_pe" {
       
       az account set --subscription $ARM_SUBSCRIPTION_ID
 
-      az network vnet subnet update --ids ${data.azurerm_subnet.bastion_pe.id} --query "id" -o tsv) --disable-private-endpoint-network-policies true 
+      az network vnet subnet update --ids ${data.azurerm_subnet.bastion_pe.id} --disable-private-endpoint-network-policies true 
     EOT
   }
 }
