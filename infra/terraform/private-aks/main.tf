@@ -160,7 +160,6 @@ data "azurerm_private_endpoint_connection" "bastion_acr_pe" {
 resource "azurerm_private_endpoint" "aks_acr_pe" {
   name                = local.acr_private_link_endpoint_name
   location            = azurerm_resource_group.k8s.location
-  location            = azurerm_resource_group.k8s.location
   resource_group_name = azurerm_resource_group.k8s.name
 
   subnet_id           = azurerm_subnet.default.id
