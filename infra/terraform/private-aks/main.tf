@@ -181,20 +181,36 @@ resource "azurerm_private_dns_zone" "bastion_dns_zone" {
   resource_group_name = var.pe_rg_name
 }
 
-resource "azurerm_private_dns_a_record" "registry_record" {
-  name                = azurerm_container_registry.acr.name
-  zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
-  resource_group_name = var.pe_rg_name
-  ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.bastion_acr_pe.private_service_connection.0.private_ip_address]
-}
+# resource "azurerm_private_dns_a_record" "registry_record" {
+#   name                = azurerm_container_registry.acr.name
+#   zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
+#   resource_group_name = var.pe_rg_name
+#   ttl                 = 3600
+#   records             = [data.azurerm_private_endpoint_connection.bastion_acr_pe.private_service_connection.0.private_ip_address]
+# }
 
-resource "azurerm_private_dns_a_record" "registry_record2" {
-  name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
-  zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
-  resource_group_name = var.pe_rg_name
-  ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.bastion_acr_pe.private_service_connection.0.private_ip_address]
+# resource "azurerm_private_dns_a_record" "registry_record2" {
+#   name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
+#   zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
+#   resource_group_name = var.pe_rg_name
+#   ttl                 = 3600
+#   records             = [data.azurerm_private_endpoint_connection.bastion_acr_pe.private_service_connection.0.private_ip_address]
+# }
+
+
+resource "null_resource" "acr_registries_record_aks" {
+  
+  provisioner "remote-exec" {
+    inline = [
+      "az login --service-principal --username $clientId --password $secret --tenant $tenantId",
+      "az account set --subscription $subscription"
+      "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.bastion_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)",
+      "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)",
+      "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)",
+      "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP",
+      "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP",
+    ]
+  }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_bastion" {
@@ -212,20 +228,35 @@ resource "azurerm_private_dns_zone" "aks_dns_zone" {
   resource_group_name = azurerm_resource_group.k8s.name
 }
 
-resource "azurerm_private_dns_a_record" "registry_record_aks" {
-  name                = azurerm_container_registry.acr.name
-  zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
-  resource_group_name = azurerm_resource_group.k8s.name
-  ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.aks_acr_pe.private_service_connection.0.private_ip_address]
-}
+# resource "azurerm_private_dns_a_record" "registry_record_aks" {
+#   name                = azurerm_container_registry.acr.name
+#   zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
+#   resource_group_name = azurerm_resource_group.k8s.name
+#   ttl                 = 3600
+#   records             = [data.azurerm_private_endpoint_connection.aks_acr_pe.private_service_connection.0.private_ip_address]
+# }
 
-resource "azurerm_private_dns_a_record" "registry_record2_aks" {
-  name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
-  zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
-  resource_group_name = azurerm_resource_group.k8s.name
-  ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.aks_acr_pe.private_service_connection.0.private_ip_address]
+# resource "azurerm_private_dns_a_record" "registry_record2_aks" {
+#   name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
+#   zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
+#   resource_group_name = azurerm_resource_group.k8s.name
+#   ttl                 = 3600
+#   records             = [data.azurerm_private_endpoint_connection.aks_acr_pe.private_service_connection.0.private_ip_address]
+# }
+
+resource "null_resource" "acr_registries_record_aks" {
+  
+  provisioner "remote-exec" {
+    inline = [
+      "az login --service-principal --username $clientId --password $secret --tenant $tenantId",
+      "az account set --subscription $subscription"
+      "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.aks_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)",
+      "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)",
+      "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)",
+      "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $privateIP",
+      "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $dataEndpointPrivateIP",
+    ]
+  }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_aks" {
