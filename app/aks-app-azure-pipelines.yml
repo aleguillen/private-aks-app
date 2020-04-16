@@ -17,7 +17,7 @@
 #     Prerequisite   : ADO Multi-Stage Yaml Pipeline
 # -----------------------------------------------------------------------------
 
-name: AKS-App-$(Date:yyyyMMdd).$(Rev:.r)
+name: AKS-App-$(Date:yyyyMMdd)$(Rev:.r)
 
 trigger:
   branches:

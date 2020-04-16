@@ -19,7 +19,7 @@
 #     Prerequisite   : ADO Multi-Stage Yaml Pipeline
 # -----------------------------------------------------------------------------
 
-name: AKS-Infra-$(Date:yyyyMMdd).$(Rev:.r)
+name: AKS-Infra-$(Date:yyyyMMdd)$(Rev:.r)
 
 trigger:
   branches:

@@ -19,7 +19,7 @@
 #     Prerequisite   : ADO Multi-Stage Yaml Pipeline
 # -----------------------------------------------------------------------------
 
-name: Bastion-Infra-$(Date:yyyyMMdd).$(Rev:.r)
+name: Bastion-Infra-$(Date:yyyyMMdd)$(Rev:.r)
 
 trigger:
   branches:
