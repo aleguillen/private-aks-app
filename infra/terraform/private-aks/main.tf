@@ -202,12 +202,12 @@ resource "null_resource" "acr_registries_record_bastion" {
   
   provisioner "local-exec" {
     # Azure Login
-    command = "az login --service-principal --username $clientId --password $secret --tenant $tenantId"
+    command = "az login --service-principal --username $arm_client_id --password $arm_client_secret --tenant $arm_tenant_id"
   }
   
   provisioner "local-exec" {
     # Azure set Subscription Id
-    command = "az account set --subscription $subscription"
+    command = "az account set --subscription $arm_subscription_id"
   }
   
   provisioner "local-exec" {
@@ -271,12 +271,12 @@ resource "null_resource" "acr_registries_record_aks" {
 
   provisioner "local-exec" {
     # Azure Login
-    command = "az login --service-principal --username $clientId --password $secret --tenant $tenantId"
+    command = "az login --service-principal --username $arm_client_id --password $arm_client_secret --tenant $arm_tenant_id"
   }
   
   provisioner "local-exec" {
     # Azure set Subscription Id
-    command = "az account set --subscription $subscription"
+    command = "az account set --subscription $arm_subscription_id"
   }
   
   provisioner "local-exec" {
