@@ -69,20 +69,6 @@ resource "azurerm_subnet" "bastion" {
   }
 }
 
-resource "azurerm_subnet" "ado" {
-  name                 = "devops"
-  resource_group_name  = azurerm_resource_group.bastion.name
-  virtual_network_name = azurerm_virtual_network.bastion.name
-  address_prefix       = "10.0.3.0/24"
-  
-  lifecycle {
-    ignore_changes = [ 
-      enforce_private_link_service_network_policies,
-      enforce_private_link_endpoint_network_policies 
-    ]
-  }
-}
-
 # Azure Bastion Host setup
 resource "azurerm_public_ip" "bastion" {
   name                = "bastion-ip"
@@ -179,7 +165,7 @@ resource "azurerm_network_interface" "ado" {
 
   ip_configuration {
     name                          = "ipconfig1"
-    subnet_id                     = azurerm_subnet.ado.id
+    subnet_id                     = azurerm_subnet.default.id
     private_ip_address_allocation = "Dynamic"
   }
   

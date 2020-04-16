@@ -1,4 +1,4 @@
-# Create Resource Group
+# CREATE: Resource Group
 resource "azurerm_resource_group" "k8s" {
   name      = local.rg_name
   location  = var.location
@@ -10,6 +10,7 @@ resource "azurerm_resource_group" "k8s" {
     )
 }
 
+# CREATE: AKS VNET and Subnets
 resource "azurerm_virtual_network" "k8s" {
   name                = local.vnet_name
   location            = azurerm_resource_group.k8s.location
@@ -44,6 +45,7 @@ resource "azurerm_subnet" "default" {
   service_endpoints = []
 }
 
+# CREATE: Log Analytics Workspace to monitor Container
 resource "random_id" "log_analytics_workspace_name_suffix" {
     byte_length = 8
 }
@@ -76,6 +78,7 @@ resource "azurerm_log_analytics_solution" "monitor" {
   }
 }
 
+# CREATE: Azure Container Registry and Private Endpoints
 # ACR and Private Link doc: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-private-link
 # ACR must be Premium
 resource "azurerm_container_registry" "acr" {
@@ -108,17 +111,19 @@ data "azurerm_virtual_network" "bastion_pe" {
 }
 
 # Update PE Subnet - setting enforce_private_link_endpoint_network_policies to true
-# Moved to Pipeline Azure CLI previous execution
-# resource "azurerm_subnet" "bastion_pe" {
-#   name                                                     = data.azurerm_subnet.bastion_pe.name
-#   resource_group_name                                      = data.azurerm_subnet.bastion_pe.resource_group_name
-#   virtual_network_name                                     = data.azurerm_subnet.bastion_pe.virtual_network_name
-#   address_prefix                                           = data.azurerm_subnet.bastion_pe.address_prefix
-#   service_endpoints                                        = data.azurerm_subnet.bastion_pe.service_endpoints
-#   enforce_private_link_service_network_policies            = data.azurerm_subnet.bastion_pe.enforce_private_link_service_network_policies 
+# Using Null resource and local-exec, since resource was created previously and not imported into this state file.
+resource "null_resource" "azurerm_subnet_bastion_pe" {
+    
+  provisioner "local-exec" {
+    command = <<EOT
+      az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+      
+      az account set --subscription $ARM_SUBSCRIPTION_ID
 
-#   enforce_private_link_endpoint_network_policies = true
-# }
+      az network vnet subnet update --ids ${data.azurerm_subnet.bastion_pe.id} --query "id" -o tsv) --disable-private-endpoint-network-policies true 
+    EOT
+  }
+}
 
 resource "azurerm_private_endpoint" "bastion_acr_pe" {
   name                = local.acr_bastion_private_link_endpoint_name
@@ -134,6 +139,10 @@ resource "azurerm_private_endpoint" "bastion_acr_pe" {
     private_connection_resource_id = azurerm_container_registry.acr.id
     subresource_names = ["registry"]
   }
+
+  depends_on = [
+    null_resource.azurerm_subnet_bastion_pe
+  ]
 }
 
 data "azurerm_private_endpoint_connection" "bastion_acr_pe" {
@@ -150,6 +159,7 @@ data "azurerm_private_endpoint_connection" "bastion_acr_pe" {
 ##
 resource "azurerm_private_endpoint" "aks_acr_pe" {
   name                = local.acr_private_link_endpoint_name
+  location            = azurerm_resource_group.k8s.location
   location            = azurerm_resource_group.k8s.location
   resource_group_name = azurerm_resource_group.k8s.name
 
@@ -181,6 +191,7 @@ resource "azurerm_private_dns_zone" "bastion_dns_zone" {
   resource_group_name = var.pe_rg_name
 }
 
+# Moving to null_resource, since output of azurerm_private_endpoint_connection does not contain all private ip address created for the PE.
 # resource "azurerm_private_dns_a_record" "registry_record" {
 #   name                = azurerm_container_registry.acr.name
 #   zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
@@ -196,7 +207,6 @@ resource "azurerm_private_dns_zone" "bastion_dns_zone" {
 #   ttl                 = 3600
 #   records             = [data.azurerm_private_endpoint_connection.bastion_acr_pe.private_service_connection.0.private_ip_address]
 # }
-
 
 resource "null_resource" "acr_registries_record_bastion" {
     
@@ -217,41 +227,6 @@ resource "null_resource" "acr_registries_record_bastion" {
       az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP
     EOT
   }
-
-  # provisioner "local-exec" {
-  #   # Azure Login
-  #   command = "az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID"
-  # }
-  
-  # provisioner "local-exec" {
-  #   # Azure set Subscription Id
-  #   command = "az account set --subscription $ARM_SUBSCRIPTION_ID"
-  # }
-  
-  # provisioner "local-exec" {
-  #   # Get Private Endpoint Network Interface
-  #   command = "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.bastion_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)"
-  # }
-
-  # provisioner "local-exec" {
-  #   # Get Ip Configuration - ACR IP Address
-  #   command = "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)"
-  # }
-
-  # provisioner "local-exec" {
-  #   # Get Ip Configuration - ACR Data Endpoint IP Address
-  #   command = "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)"
-  # }
-
-  # provisioner "local-exec" {
-  #   # Create DNS record for ACR
-  #   command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP"
-  # }
-  
-  # provisioner "local-exec" {
-  #   # Create DNS record for ACR Data Endpoint
-  #   command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP"
-  # }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_bastion" {
@@ -269,6 +244,7 @@ resource "azurerm_private_dns_zone" "aks_dns_zone" {
   resource_group_name = azurerm_resource_group.k8s.name
 }
 
+# Moving to null_resource, since output of azurerm_private_endpoint_connection does not contain all private ip address created for the PE.
 # resource "azurerm_private_dns_a_record" "registry_record_aks" {
 #   name                = azurerm_container_registry.acr.name
 #   zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
@@ -304,42 +280,6 @@ resource "null_resource" "acr_registries_record_aks" {
       az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $dataEndpointPrivateIP
     EOT
   }
-  
-
-  # provisioner "local-exec" {
-  #   # Azure Login
-  #   command = "az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID"
-  # }
-  
-  # provisioner "local-exec" {
-  #   # Azure set Subscription Id
-  #   command = "az account set --subscription $ARM_SUBSCRIPTION_ID"
-  # }
-  
-  # provisioner "local-exec" {
-  #   # Get Private Endpoint Network Interface
-  #   command = "networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.aks_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)"
-  # }
-
-  # provisioner "local-exec" {
-  #   # Get Ip Configuration - ACR IP Address
-  #   command = "privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)"
-  # }
-
-  # provisioner "local-exec" {
-  #   # Get Ip Configuration - ACR Data Endpoint IP Address
-  #   command = "dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)"
-  # }
-
-  # provisioner "local-exec" {
-  #   # Create DNS record for ACR
-  #   command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $privateIP"
-  # }
-  
-  # provisioner "local-exec" {
-  #   # Create DNS record for ACR Data Endpoint
-  #   command = "az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $dataEndpointPrivateIP"
-  # }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_aks" {

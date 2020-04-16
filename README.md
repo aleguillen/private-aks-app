@@ -183,7 +183,6 @@ aks_name='$(prefix)-$(environment)-aks' \
 aks_version='1.15.7' \
 aks_service_principal_client_id='<replace-me>' \
 aks_service_principal_id='<replace-me>' \
-ado_subnet_id='<replace-me>' \
 pe_rg_name='<replace-me>' \
 pe_vnet_name='<replace-me>' \
 pe_subnet_name='<replace-me>'
