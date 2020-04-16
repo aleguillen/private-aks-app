@@ -113,7 +113,10 @@ data "azurerm_virtual_network" "bastion_pe" {
 # Update PE Subnet - setting enforce_private_link_endpoint_network_policies to true
 # Using Null resource and local-exec, since resource was created previously and not imported into this state file.
 resource "null_resource" "azurerm_subnet_bastion_pe" {
-    
+  triggers = {
+    enforce_private_link_endpoint_network_policies = data.azurerm_subnet.bastion_pe.enforce_private_link_endpoint_network_policies
+  }
+
   provisioner "local-exec" {
     command = <<EOT
       az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
@@ -208,7 +211,10 @@ resource "azurerm_private_dns_zone" "bastion_dns_zone" {
 # }
 
 resource "null_resource" "acr_registries_record_bastion" {
-    
+  triggers = {
+    always_run = uuid()
+  }
+
   provisioner "local-exec" {
     command = <<EOT
       az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
@@ -261,7 +267,10 @@ resource "azurerm_private_dns_zone" "aks_dns_zone" {
 # }
 
 resource "null_resource" "acr_registries_record_aks" {
-
+  triggers = {
+    always_run = uuid()
+  }
+  
   provisioner "local-exec" {
     command = <<EOT
       az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID

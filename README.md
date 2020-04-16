@@ -154,7 +154,7 @@ az pipelines variable-group variable create \
 --name 'ado_pat_token' \
 --value '<replace-me>'
 ```
-* Create Bastion Infra Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
+* Create Bastion Infra Pipeline [from CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
 az pipelines create --name 'Bastion.Infra.CI.CD' --yaml-path '/infra/terraform/bastion-net/bastion-infra-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
 ```
@@ -196,11 +196,11 @@ az pipelines variable-group variable create \
 --name 'aks_service_principal_client_secret' \
 --value '<replace-me>'
 ```
-* Create AKS Infra Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
+* Create AKS Infra Pipeline [from CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
 az pipelines create --name 'Private.AKS.Infra.CI.CD' --yaml-path '/infra/terraform/private-aks/aks-infra-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
 ```
-* Create AKS App Pipeline [from the CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
+* Create AKS App Pipeline [from CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli).
 ```bash
 az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/app/aks-app-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
 ```
