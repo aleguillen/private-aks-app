@@ -199,7 +199,7 @@ resource "azurerm_private_dns_zone" "bastion_dns_zone" {
 
 
 resource "null_resource" "acr_registries_record_bastion" {
-  
+    
   provisioner "local-exec" {
     command = <<EOT
       az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
@@ -212,7 +212,7 @@ resource "null_resource" "acr_registries_record_bastion" {
       
       dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)
       
-      az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP"
+      az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP
       
       az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP
     EOT
