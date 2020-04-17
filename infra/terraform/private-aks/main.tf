@@ -227,12 +227,12 @@ resource "null_resource" "acr_registries_record_bastion" {
       
       dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)
       
-      if [ "$(az network private-dns record-set a list -g ${var.pe_rg_name} -z ${azurerm_private_dns_zone.bastion_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}'].aRecords[0].ipv4Address" -o tsv)" == "" ] 
+      if [ "$(az network private-dns record-set a list -g ${var.pe_rg_name} -z ${azurerm_private_dns_zone.bastion_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}'].aRecords[0].ipv4Address" -o tsv)" = "" ] 
       then
         az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP
       fi
       
-      if [ "$(az network private-dns record-set a list -g ${var.pe_rg_name} -z ${azurerm_private_dns_zone.bastion_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data'].aRecords[0].ipv4Address" -o tsv)" == "" ] 
+      if [ "$(az network private-dns record-set a list -g ${var.pe_rg_name} -z ${azurerm_private_dns_zone.bastion_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data'].aRecords[0].ipv4Address" -o tsv)" = "" ] 
       then
         az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $dataEndpointPrivateIP
       fi
@@ -290,12 +290,12 @@ resource "null_resource" "acr_registries_record_aks" {
       
       dataEndpointPrivateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' --output tsv)
       
-      if [ "$(az network private-dns record-set a list -g ${azurerm_resource_group.k8s.name} -z ${azurerm_private_dns_zone.aks_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}'].aRecords[0].ipv4Address" -o tsv)" == "" ] 
+      if [ "$(az network private-dns record-set a list -g ${azurerm_resource_group.k8s.name} -z ${azurerm_private_dns_zone.aks_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}'].aRecords[0].ipv4Address" -o tsv)" = "" ] 
       then
         az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $privateIP
       fi
       
-      if [ "$(az network private-dns record-set a list -g ${azurerm_resource_group.k8s.name} -z ${azurerm_private_dns_zone.aks_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data'].aRecords[0].ipv4Address" -o tsv)" == "" ] 
+      if [ "$(az network private-dns record-set a list -g ${azurerm_resource_group.k8s.name} -z ${azurerm_private_dns_zone.aks_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data'].aRecords[0].ipv4Address" -o tsv)" = "" ] 
       then
         az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data --zone-name ${azurerm_private_dns_zone.aks_dns_zone.name} --resource-group ${azurerm_resource_group.k8s.name} --ipv4-address $dataEndpointPrivateIP
       fi
