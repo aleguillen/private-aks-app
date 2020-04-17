@@ -24,13 +24,13 @@ name: AKS-Infra-$(Date:yyyyMMdd)$(Rev:.r)
 trigger:
   branches:
     include:
-    - privatelinkacr
+    - master
   paths:
     include:
       - infra/terraform/private-aks/*
 
 variables:
-  - group: aksacr_dev_vars
+  - group: aks_dev_vars
 
   - name: ado_agent_pool
     value: 'UbuntuPrivatePool'

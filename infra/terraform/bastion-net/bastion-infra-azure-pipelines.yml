@@ -24,13 +24,13 @@ name: Bastion-Infra-$(Date:yyyyMMdd)$(Rev:.r)
 trigger:
   branches:
     include:
-    - privatelinkacr
+    - master
   paths:
     include:
       - infra/terraform/bastion-net/*
 
 variables:
-  - group: bastionacr_dev_vars
+  - group: bastion_dev_vars
   
   - name: ado_agent_pool
     value: 'Azure Pipelines'

@@ -25,7 +25,7 @@ The purpose of this sample is to create an end to end solution to connect to app
 
 ### Architecture 
 
-![alt text](/images/Private-Cluster-Architecture.PNG)
+![](/images/Private-Cluster-Architecture.PNG)
 
 This is a sample architecture. Let's break it down:
 
@@ -54,6 +54,11 @@ This is a sample architecture. Let's break it down:
         ```
 
 ### [Private AKS Deployment Overview](/infra/terraform/private-aks)
+
+
+#### Architecture Flow - Deploying Private AKS Cluster with Azure DevOps
+
+![](/images/Private-Cluster-Architecture-Flow.gif)
 
 * [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-intro) - managed, private Docker registry service based on Docker Registry 2.0. In this case we will be restricting access to ACR using virtual network firewall rules and service endpoints, for more information see [here](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-vnet)
 * [Private Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/private-clusters) - by using a private cluster with internal IP you can ensure that network traffic remains inside the network.
