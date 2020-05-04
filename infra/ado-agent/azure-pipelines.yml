@@ -47,10 +47,10 @@ stages:
           vmImage: ubuntu-18.04
         steps:
         - task: CopyFiles@2
-          displayName: 'Copy Files to: $(build.artifactstagingdirectory)/terraform'
+          displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
           inputs:
             SourceFolder: 'infra/ado-agent'
-            TargetFolder: '$(build.artifactstagingdirectory)/terraform'
+            TargetFolder: '$(build.artifactstagingdirectory)'
 
         - task: PublishBuildArtifacts@1
           displayName: 'Publish Artifact: infra'
