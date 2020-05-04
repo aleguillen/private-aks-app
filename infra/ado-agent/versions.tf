@@ -6,7 +6,7 @@ terraform {
     template = "~> 2.1"
     tls = "~> 2.1"
   }
-  # backend "azurerm" {} # Comment this line if executing locally
+  backend "azurerm" {} # Comment this line if executing locally
 }
 
 provider "azurerm" {
