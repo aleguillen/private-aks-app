@@ -114,7 +114,7 @@ stages:
             scriptType: 'bash'
             addSpnToEnvironment: true
             scriptLocation: 'inlineScript'
-            workingDirectory: '/opt/hostedtoolcache/terraform/0.12.24/x64'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
             inlineScript: |
               terraform init -backend-config=storage_account_name=$(terraformstorageaccount) -backend-config=container_name=terraform -backend-config=key=$().terraform.tfstate -backend-config=resource_group_name=$(terraformstoragerg) -backend-config=arm_subscription_id=$(az account show --query "id" -o tsv) -backend-config=arm_tenant_id=$tenantId -backend-config=arm_client_id=$servicePrincipalId -backend-config=arm_client_secret=$servicePrincipalKey -backend-config=arm_access_key=$(storagekey)
               
@@ -129,7 +129,8 @@ stages:
             scriptType: 'bash'
             addSpnToEnvironment: true
             scriptLocation: 'inlineScript'
-            workingDirectory: '/opt/hostedtoolcache/terraform/0.12.24/x64'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
+              #'/opt/hostedtoolcache/terraform/0.12.24/x64'
             inlineScript: |  
               terraform apply -auto-approve -refresh=true
 
