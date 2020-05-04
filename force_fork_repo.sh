@@ -1,3 +1,4 @@
+#!/bin/bash
 # Set local target repo location
 #   cd <--target-repo-location-->
 
