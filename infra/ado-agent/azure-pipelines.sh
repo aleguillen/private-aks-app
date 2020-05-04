@@ -29,10 +29,21 @@ ado_pat_token='<replace-me>'
 
 # Agent Pool Nanme
 ado_pool_name='UbuntuPrivatePool'
+
+# ADO variable group name - if you change this name you will need to change azure-pipelines.yml file.
 ado_var_group_name='ado_dev_vars'
 
+# ADO Pipeline Name
+ado_pipeline_name='ADO.Infra.CI.CD'
+
+# Pipeline Yaml file path location
+ado_pipeline_yml_path='/infra/ado-agent/azure-pipelines.yml'
+
+# Azure Repo name for pipeline.
+ado_repo='private-aks-app'
+
 #################################################
-################# Variables #####################
+################### Setup #######################
 #################################################
 
 # Make sure your Azure DevOps defaults include the organization and project from the command prompt
@@ -70,4 +81,6 @@ az pipelines variable-group variable create \
 --secret true \
 --name 'ado_pat_token' \
 --value $ado_pat_token
-```
+
+# Create Pipeline
+az pipelines create --name $ado_pipeline_name --yaml-path $ado_pipeline_yml_path --repository $ado_repo --repository-type tfsgit 

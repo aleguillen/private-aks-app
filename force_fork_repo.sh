@@ -7,7 +7,9 @@
 
 # Discard local changes
 # git reset --hard
+BRANCH='master'
+BRANCH='feature/ado-vmss-agents'
 
 git fetch upstream
-git merge upstream/master
-git push origin master
+git merge upstream/$BRANCH
+git push origin $BRANCH

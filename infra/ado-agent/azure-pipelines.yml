@@ -22,9 +22,9 @@
 name: ADO-Infra-$(Date:yyyyMMdd)$(Rev:.r)
 
 trigger:
-  # branches:
-  #   include:
-  #   - master
+  branches:
+    include:
+    - master
   paths:
     include:
       - infra/ado-net/*
