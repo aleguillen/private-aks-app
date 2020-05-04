@@ -41,6 +41,7 @@ ado_pipeline_yml_path='/infra/ado-agent/azure-pipelines.yml'
 
 # Azure Repo name for pipeline.
 ado_repo='private-aks-app'
+ado_repo_branch='master'
 
 #################################################
 ################### Setup #######################
@@ -83,4 +84,4 @@ az pipelines variable-group variable create \
 --value $ado_pat_token
 
 # Create Pipeline
-az pipelines create --name $ado_pipeline_name --yaml-path $ado_pipeline_yml_path --repository $ado_repo --repository-type tfsgit 
+az pipelines create --name $ado_pipeline_name --yaml-path $ado_pipeline_yml_path --repository $ado_repo --repository-type tfsgit --branch $ado_repo_branch

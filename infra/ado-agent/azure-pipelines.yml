@@ -27,7 +27,7 @@ trigger:
     - master
   paths:
     include:
-      - infra/ado-net/*
+      - infra/ado-agent/*
 
 variables:
   - group: ado_dev_vars
@@ -49,7 +49,7 @@ stages:
         - task: CopyFiles@2
           displayName: 'Copy Files to: $(build.artifactstagingdirectory)/terraform'
           inputs:
-            SourceFolder: 'infra/ado-net'
+            SourceFolder: 'infra/ado-agent'
             TargetFolder: '$(build.artifactstagingdirectory)/terraform'
 
         - task: PublishBuildArtifacts@1
