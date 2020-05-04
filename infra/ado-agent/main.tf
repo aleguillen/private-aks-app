@@ -240,7 +240,7 @@ resource "azurerm_role_assignment" "ado" {
 
 # CREATE: Storage Account for Terraform State file
 resource "azurerm_storage_account" "ado" {
-    name                     = "tf${substr(md5(azurerm_resource_group.ado.id),0,20)}sa"
+    name                     = "tf${substr(md5(azurerm_resource_group.ado.id),0,15)}sa"
     resource_group_name      = azurerm_resource_group.ado.name
     location                 = azurerm_resource_group.ado.location
     account_tier             = "Standard"
