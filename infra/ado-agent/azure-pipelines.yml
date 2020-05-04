@@ -116,11 +116,26 @@ stages:
             scriptLocation: 'inlineScript'
             workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
             inlineScript: |
-              terraform init -backend-config=storage_account_name=$(terraformstorageaccount) -backend-config=container_name=terraform -backend-config=key=$().terraform.tfstate -backend-config=resource_group_name=$(terraformstoragerg) -backend-config=arm_subscription_id=$(az account show --query "id" -o tsv) -backend-config=arm_tenant_id=$tenantId -backend-config=arm_client_id=$servicePrincipalId -backend-config=arm_client_secret=$servicePrincipalKey -backend-config=arm_access_key=$(storagekey)
+              export storage_account_name=$(terraformstorageaccount)
+              export container_name=terraform 
+              export key=terraform.tfstate 
+              export resource_group_name=$(terraformstoragerg) 
+              export arm_subscription_id=$(az account show --query "id" -o tsv)
+              export arm_tenant_id=$tenantId 
+              export arm_client_id=$servicePrincipalId 
+              export arm_client_secret=$servicePrincipalKey 
+              export arm_access_key=$(storagekey)
               
+              # terraform init -backend-config=storage_account_name=$(terraformstorageaccount) -backend-config=container_name=terraform -backend-config=key=terraform.tfstate -backend-config=resource_group_name=$(terraformstoragerg) -backend-config=arm_subscription_id=$(az account show --query "id" -o tsv) -backend-config=arm_tenant_id=$tenantId -backend-config=arm_client_id=$servicePrincipalId -backend-config=arm_client_secret=$servicePrincipalKey -backend-config=arm_access_key=$(storagekey)
+              
+              terraform init
               terraform validate
               terraform refresh
               terraform plan
+          env: {
+            
+            ARM_CLIENT_ID: 
+          }
 
         - task: AzureCLI@2
           displayName: 'Terraform: Apply'
