@@ -121,6 +121,7 @@ stages:
           inputs:
             command: plan
             workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
+            commandOptions: '-out terraform.tfstate'
             environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
             backendServiceArm: ${{ variables.ado_service_connection_name }}
             backendAzureRmResourceGroupName: '$(terraformstoragerg)'
@@ -133,7 +134,7 @@ stages:
           inputs:
             command: apply
             workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
-            commandOptions: '-auto-approve'
+            commandOptions: '-auto-approve -state=terraform.tfstate'
             environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
             backendServiceArm: ${{ variables.ado_service_connection_name }}
             backendAzureRmResourceGroupName: '$(terraformstoragerg)'
