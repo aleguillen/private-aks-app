@@ -74,8 +74,8 @@ To walk through a quick deployment of this application, see the AKS [quick start
 * [Login](https://dev.azure.com) into your Azure DevOps Organization.
 * Create a new project in Azure DevOps, for information see [here](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project).
     * Sample name: **private-aks-app**
-* Create a new Agent Pool in your project, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/pools-queues)
-    * Name: **UbuntuPrivatePool**
+* We will be using **Default** Agent Pool. Alternately you can create a new Agent Pool in your project, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/pools-queues), if you do update all pipelines files **azure-pipelines.yml** file and variable group value.
+    * Example Name: **UbuntuPrivatePool**
     * Keep option **Grant access permission to all pipelines** checked.
 * Create a new Azure Service Connection to your Azure Subscription, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints)
     * Azure CLI script:

@@ -133,7 +133,7 @@ stages:
           inputs:
             command: apply
             workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
-            commandOptions: '-auto-approve -'
+            commandOptions: '-auto-approve'
             environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
             backendServiceArm: ${{ variables.ado_service_connection_name }}
             backendAzureRmResourceGroupName: '$(terraformstoragerg)'

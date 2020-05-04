@@ -28,7 +28,7 @@ vm_password='<replace-me>'
 ado_pat_token='<replace-me>'
 
 # Agent Pool Nanme
-ado_pool_name='UbuntuPrivatePool'
+ado_pool_name='Default'
 
 # ADO variable group name - if you change this name you will need to change azure-pipelines.yml file.
 ado_var_group_name='ado_dev_vars'
