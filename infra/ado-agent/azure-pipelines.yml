@@ -107,80 +107,37 @@ stages:
           inputs:
             terraformVersion: 0.12.24
   
-        - task: AzureCLI@2
-          displayName: 'Initialize Terraform: Init, Validate, Refresh and Plan'
+        - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+          displayName: 'Terraform : init'
           inputs:
-            azureSubscription: ${{ variables.ado_service_connection_name }}
-            scriptType: 'bash'
-            addSpnToEnvironment: true
-            scriptLocation: 'inlineScript'
             workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
-            inlineScript: |
-              export storage_account_name=$(terraformstorageaccount)
-              export container_name=terraform 
-              export key=terraform.tfstate 
-              export resource_group_name=$(terraformstoragerg) 
-              export arm_subscription_id=$(az account show --query "id" -o tsv)
-              export arm_tenant_id=$tenantId 
-              export arm_client_id=$servicePrincipalId 
-              export arm_client_secret=$servicePrincipalKey 
-              export arm_access_key=$(storagekey)
-              
-              # terraform init -backend-config=storage_account_name=$(terraformstorageaccount) -backend-config=container_name=terraform -backend-config=key=terraform.tfstate -backend-config=resource_group_name=$(terraformstoragerg) -backend-config=arm_subscription_id=$(az account show --query "id" -o tsv) -backend-config=arm_tenant_id=$tenantId -backend-config=arm_client_id=$servicePrincipalId -backend-config=arm_client_secret=$servicePrincipalKey -backend-config=arm_access_key=$(storagekey)
-              
-              terraform init
-              terraform validate
-              terraform refresh
-              terraform plan
-          env: {
-            
-            ARM_CLIENT_ID: 
-          }
+            backendServiceArm: ${{ variables.ado_service_connection_name }}
+            backendAzureRmResourceGroupName: '$(terraformstoragerg)'
+            backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
+            backendAzureRmContainerName: terraform
+            backendAzureRmKey: '/ado/terraform.tfstate'
 
-        - task: AzureCLI@2
-          displayName: 'Terraform: Apply'
+        - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+          displayName: 'Terraform : plan'
           inputs:
-            azureSubscription: ${{ variables.ado_service_connection_name }}
-            scriptType: 'bash'
-            addSpnToEnvironment: true
-            scriptLocation: 'inlineScript'
+            command: plan
             workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
-              #'/opt/hostedtoolcache/terraform/0.12.24/x64'
-            inlineScript: |  
-              terraform apply -auto-approve -refresh=true
+            environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
+            backendServiceArm: ${{ variables.ado_service_connection_name }}
+            backendAzureRmResourceGroupName: '$(terraformstoragerg)'
+            backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
+            backendAzureRmContainerName: terraform
+            backendAzureRmKey: '/ado/terraform.tfstate'
 
-        # - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
-        #   displayName: 'Terraform : init'
-        #   inputs:
-        #     workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
-        #     backendServiceArm: ${{ variables.ado_service_connection_name }}
-        #     backendAzureRmResourceGroupName: '$(terraformstoragerg)'
-        #     backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
-        #     backendAzureRmContainerName: terraform
-        #     backendAzureRmKey: terraform.tfstate
-
-        # - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
-        #   displayName: 'Terraform : plan'
-        #   inputs:
-        #     command: plan
-        #     workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
-        #     commandOptions: '-out terraform.tfstate'
-        #     environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
-        #     backendServiceArm: ${{ variables.ado_service_connection_name }}
-        #     backendAzureRmResourceGroupName: '$(terraformstoragerg)'
-        #     backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
-        #     backendAzureRmContainerName: terraform
-        #     backendAzureRmKey: terraform.tfstate
-
-        # - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
-        #   displayName: 'Terraform : apply -auto-approve'
-        #   inputs:
-        #     command: apply
-        #     workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
-        #     commandOptions: '-auto-approve -state=terraform.tfstate'
-        #     environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
-        #     backendServiceArm: ${{ variables.ado_service_connection_name }}
-        #     backendAzureRmResourceGroupName: '$(terraformstoragerg)'
-        #     backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
-        #     backendAzureRmContainerName: terraform
-        #     backendAzureRmKey: terraform.tfstate
+        - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+          displayName: 'Terraform : apply -auto-approve'
+          inputs:
+            command: apply
+            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
+            commandOptions: '-auto-approve'
+            environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
+            backendServiceArm: ${{ variables.ado_service_connection_name }}
+            backendAzureRmResourceGroupName: '$(terraformstoragerg)'
+            backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
+            backendAzureRmContainerName: terraform
+            backendAzureRmKey: '/ado/terraform.tfstate'
