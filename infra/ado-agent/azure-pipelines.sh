@@ -24,6 +24,16 @@ prefix='ado001'
 vm_username='adoadmin' 
 vm_password='<replace-me>'
 
+# If TRUE - Create VM Scale Set instead of Single VM.
+ado_vmss_enabled = false
+ado_vmss_instances = "1"
+
+# Set VM Size
+ado_vm_size = "Standard_DS1_v2"
+
+# List of Subscription Ids for Agent Pool Role Assigment Access
+ado_subscription_ids_access = ["<replace-me>"]
+
 # Azure DevOps PAT token to configure Self-Hosted Agent
 ado_pat_token='<replace-me>'
 
@@ -62,6 +72,10 @@ environment=$environment \
 location=$location \
 prefix=$prefix \
 vm_username=$vm_username \
+ado_vmss_enabled=$ado_vmss_enabled \
+ado_vmss_instances=$ado_vmss_instances \
+ado_vm_size=$ado_vm_size \
+ado_subscription_ids=$ado_subscription_ids_access \
 ado_pool_name=$ado_pool_name \
 resource_group='$(prefix)-$(environment)-rg' \
 storagekey='PipelineWillGetThisValueRuntime' \

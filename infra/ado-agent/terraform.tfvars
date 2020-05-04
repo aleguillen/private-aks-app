@@ -20,7 +20,7 @@ ado_vm_size = "__ado_vm_size__"
 
 ado_vmss_instances = "__ado_vmss_instances__"
 
-ado_subscription_ids = "__ado_subscription_ids__"
+ado_subscription_ids = __ado_subscription_ids__
 
 # Can be replaced with token variables if prefered. 
 # You can add/remove tags as needed. 
