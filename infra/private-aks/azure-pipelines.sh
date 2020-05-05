@@ -45,6 +45,11 @@ pe_subnet_name='<replace-me>'
 pe_is_manual_connection=false
 pe_request_message=''
 
+# Terraform Storage Account Details - Storage Account created for ADO Self-Hosted Agent
+terraformstorageaccount='<replace-me>'
+terraformstoragerg='<replace-me>'
+terraformstoragecontainer='terraform'
+
 # ADO variable group name - if you change this name you will need to change azure-pipelines.yml file.
 ado_var_group_name='aks_dev_vars'
 
@@ -80,8 +85,10 @@ vnet_name='$(prefix)-$(environment)-vnet' \
 acr_name='$(prefix)$(environment)acr' \
 acr='$(acr_name).azurecr.io' \
 storagekey='PipelineWillGetThisValueRuntime' \
-terraformstorageaccount='tf$(prefix)$(environment)sa' \
-terraformstoragerg='tf-$(prefix)-$(environment)-rg' 
+terraformstorageaccount=$terraformstorageaccount \
+terraformstoragerg=$terraformstoragerg \
+terraformstoragecontainer=$terraformstoragecontainer \
+terraformstorageblobname='$(prefix)/$(environment)/terraform.tfstate'
 
 # Create Variable Secrets
 VAR_GROUP_ID=$(az pipelines variable-group list --group-name aks_dev_vars --top 1 --query "[0].id" -o tsv)
