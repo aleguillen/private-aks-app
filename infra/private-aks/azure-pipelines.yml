@@ -121,9 +121,9 @@ stages:
             tokenSuffix: '__'
           
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
-          displayName: 'Install Terraform 0.12.20'
+          displayName: 'Install Terraform 0.12.24'
           inputs:
-            terraformVersion: 0.12.20
+            terraformVersion: 0.12.24
 
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : init'
