@@ -29,7 +29,7 @@ resource "azurerm_subnet" "proxy" {
   name                 = "proxy-subnet"
   resource_group_name  = azurerm_resource_group.k8s.name
   virtual_network_name = azurerm_virtual_network.k8s.name
-  address_prefix       = "192.168.0.0/24"
+  address_prefixes     = ["192.168.0.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -38,7 +38,7 @@ resource "azurerm_subnet" "default" {
   name                 = "aks-subnet"
   resource_group_name  = azurerm_resource_group.k8s.name
   virtual_network_name = azurerm_virtual_network.k8s.name
-  address_prefix       = "192.168.1.0/24"
+  address_prefixes     = ["192.168.1.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
   
@@ -148,14 +148,14 @@ resource "azurerm_private_endpoint" "bastion_acr_pe" {
   ]
 }
 
-data "azurerm_private_endpoint_connection" "bastion_acr_pe" {
-  name                = local.acr_bastion_private_link_endpoint_name
-  resource_group_name = var.pe_rg_name
+# data "azurerm_private_endpoint_connection" "bastion_acr_pe" {
+#   name                = local.acr_bastion_private_link_endpoint_name
+#   resource_group_name = var.pe_rg_name
 
-  depends_on = [
-    azurerm_private_endpoint.bastion_acr_pe
-  ]
-}
+#   depends_on = [
+#     azurerm_private_endpoint.bastion_acr_pe
+#   ]
+# }
 
 ##
 # CREATE: Private Endpoint in AKS Subnet to ACR
@@ -193,13 +193,13 @@ resource "azurerm_private_dns_zone" "bastion_dns_zone" {
   resource_group_name = var.pe_rg_name
 }
 
-# Moving to null_resource, since output of azurerm_private_endpoint_connection does not contain all private ip address created for the PE.
+# Moving to null_resource, since output of azurerm_private_endpoint does not contain all private ip address created for the PE.
 resource "azurerm_private_dns_a_record" "registry_record" {
   name                = azurerm_container_registry.acr.name
   zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
   resource_group_name = var.pe_rg_name
   ttl                 = 3600
-  records             = [azurerm_private_endpoint_connection.bastion_acr_pe.private_service_connection.1.private_ip_address]
+  records             = [azurerm_private_endpoint.bastion_acr_pe.private_service_connection.1.private_ip_address]
 }
 
 resource "azurerm_private_dns_a_record" "registry_record2" {
@@ -207,7 +207,7 @@ resource "azurerm_private_dns_a_record" "registry_record2" {
   zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
   resource_group_name = var.pe_rg_name
   ttl                 = 3600
-  records             = [azurerm_private_endpoint_connection.bastion_acr_pe.private_service_connection.0.private_ip_address]
+  records             = [azurerm_private_endpoint.bastion_acr_pe.private_service_connection.0.private_ip_address]
 }
 
 # resource "null_resource" "acr_registries_record_bastion" {
@@ -256,13 +256,13 @@ resource "azurerm_private_dns_zone" "aks_dns_zone" {
   resource_group_name = azurerm_resource_group.k8s.name
 }
 
-# Moving to null_resource, since output of azurerm_private_endpoint_connection does not contain all private ip address created for the PE.
+# Moving to null_resource, since output of azurerm_private_endpoint does not contain all private ip address created for the PE.
 resource "azurerm_private_dns_a_record" "registry_record_aks" {
   name                = azurerm_container_registry.acr.name
   zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
   resource_group_name = azurerm_resource_group.k8s.name
   ttl                 = 3600
-  records             = [azurerm_private_endpoint_connection.aks_acr_pe.private_service_connection.1.private_ip_address]
+  records             = [azurerm_private_endpoint.aks_acr_pe.private_service_connection.1.private_ip_address]
 }
 
 resource "azurerm_private_dns_a_record" "registry_record2_aks" {
@@ -270,7 +270,7 @@ resource "azurerm_private_dns_a_record" "registry_record2_aks" {
   zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
   resource_group_name = azurerm_resource_group.k8s.name
   ttl                 = 3600
-  records             = [azurerm_private_endpoint_connection.aks_acr_pe.private_service_connection.0.private_ip_address]
+  records             = [azurerm_private_endpoint.aks_acr_pe.private_service_connection.0.private_ip_address]
 }
 
 # resource "null_resource" "acr_registries_record_aks" {
@@ -320,7 +320,7 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   location            = azurerm_resource_group.k8s.location
   dns_prefix          = local.aks_dns_prefix
 
-  private_link_enabled = true
+  private_cluster_enabled = true
   
   kubernetes_version = var.aks_version
 
@@ -395,14 +395,14 @@ resource "azurerm_private_endpoint" "bastion_aks_pe" {
   }
 }
 
-data "azurerm_private_endpoint_connection" "bastion_aks_pe" {
-  name                = local.aks_private_link_endpoint_name
-  resource_group_name = var.pe_rg_name
+# data "azurerm_private_endpoint_connection" "bastion_aks_pe" {
+#   name                = local.aks_private_link_endpoint_name
+#   resource_group_name = var.pe_rg_name
 
-  depends_on = [
-    azurerm_private_endpoint.bastion_aks_pe
-  ]
-}
+#   depends_on = [
+#     azurerm_private_endpoint.bastion_aks_pe
+#   ]
+# }
 
 resource "azurerm_private_dns_zone" "privatedns" {
   name                = join(".", slice(split(".",azurerm_kubernetes_cluster.k8s.private_fqdn),1,length(split(".",azurerm_kubernetes_cluster.k8s.private_fqdn))))  
@@ -414,7 +414,7 @@ resource "azurerm_private_dns_a_record" "record" {
   zone_name           = azurerm_private_dns_zone.privatedns.name
   resource_group_name = var.pe_rg_name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.bastion_aks_pe.private_service_connection.0.private_ip_address]
+  records             = [azurerm_private_endpoint.bastion_aks_pe.private_service_connection.0.private_ip_address]
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "example" {
