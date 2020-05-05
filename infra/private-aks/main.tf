@@ -194,13 +194,13 @@ resource "azurerm_private_dns_zone" "bastion_dns_zone" {
 }
 
 # Moving to null_resource, since output of azurerm_private_endpoint does not contain all private ip address created for the PE.
-resource "azurerm_private_dns_a_record" "registry_record" {
-  name                = azurerm_container_registry.acr.name
-  zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
-  resource_group_name = var.pe_rg_name
-  ttl                 = 3600
-  records             = [azurerm_private_endpoint.bastion_acr_pe.private_service_connection.1.private_ip_address]
-}
+# resource "azurerm_private_dns_a_record" "registry_record" {
+#   name                = azurerm_container_registry.acr.name
+#   zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
+#   resource_group_name = var.pe_rg_name
+#   ttl                 = 3600
+#   records             = [azurerm_private_endpoint.bastion_acr_pe.private_service_connection.1.private_ip_address]
+# }
 
 resource "azurerm_private_dns_a_record" "registry_record2" {
   name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
@@ -257,13 +257,13 @@ resource "azurerm_private_dns_zone" "aks_dns_zone" {
 }
 
 # Moving to null_resource, since output of azurerm_private_endpoint does not contain all private ip address created for the PE.
-resource "azurerm_private_dns_a_record" "registry_record_aks" {
-  name                = azurerm_container_registry.acr.name
-  zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
-  resource_group_name = azurerm_resource_group.k8s.name
-  ttl                 = 3600
-  records             = [azurerm_private_endpoint.aks_acr_pe.private_service_connection.1.private_ip_address]
-}
+# resource "azurerm_private_dns_a_record" "registry_record_aks" {
+#   name                = azurerm_container_registry.acr.name
+#   zone_name           = azurerm_private_dns_zone.aks_dns_zone.name
+#   resource_group_name = azurerm_resource_group.k8s.name
+#   ttl                 = 3600
+#   records             = [azurerm_private_endpoint.aks_acr_pe.private_service_connection.1.private_ip_address]
+# }
 
 resource "azurerm_private_dns_a_record" "registry_record2_aks" {
   name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"

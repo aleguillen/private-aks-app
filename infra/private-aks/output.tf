@@ -17,3 +17,11 @@ output "aks_client_certificate" {
 output "aks_kube_config" {
   value = azurerm_kubernetes_cluster.k8s.kube_config_raw
 }
+
+output "bastion_acr_pe" {
+  value = azurerm_private_endpoint.bastion_acr_pe
+}
+
+output "aks_acr_pe" {
+  value = azurerm_private_endpoint.aks_acr_pe
+}
