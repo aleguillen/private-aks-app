@@ -12,14 +12,12 @@ aks_service_principal_id = "__aks_service_principal_id__"
 
 aks_version = "__aks_version__"
 
-ado_subnet_id = "__ado_subnet_id__"
-
 pe_rg_name = "__pe_rg_name__"
 
 pe_vnet_name = "__pe_vnet_name__"
 
 pe_subnet_name = "__pe_subnet_name__"
 
-pe_is_manual_connection = false
+pe_is_manual_connection = "__pe_is_manual_connection__"
 
-pe_request_message = ""
+pe_request_message = "__pe_request_message__"

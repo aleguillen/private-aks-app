@@ -34,11 +34,6 @@ variable "aks_version" {
   description = "Version of Kubernetes specified when creating the AKS managed cluster."
 }
 
-variable "ado_subnet_id" {
-  type        = string
-  description = "The Subnet ID for the Azure DevOps Self Agent."
-}
-
 variable "pe_rg_name" {
   type        = string
   description = "The Resource Group name for the Private Endpoint."
