@@ -27,7 +27,9 @@ trigger:
     - master
   paths:
     include:
-      - infra/terraform/private-aks/*
+      - infra/private-aks/*
+    exclude:
+      - README.md
 
 variables:
   - group: aks_dev_vars
@@ -49,7 +51,7 @@ stages:
         - task: CopyFiles@2
           displayName: 'Copy Files to: $(build.artifactstagingdirectory)/terraform'
           inputs:
-            SourceFolder: 'infra/terraform/private-aks'
+            SourceFolder: 'infra/private-aks'
             TargetFolder: '$(build.artifactstagingdirectory)/terraform'
 
         - task: PublishBuildArtifacts@1
@@ -159,7 +161,7 @@ stages:
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : init'
           inputs:
-            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra/terraform'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
             backendServiceArm: ${{ variables.ado_service_connection_name }}
             backendAzureRmResourceGroupName: '$(terraformstoragerg)'
             backendAzureRmStorageAccountName: '$(terraformstorageaccount)'

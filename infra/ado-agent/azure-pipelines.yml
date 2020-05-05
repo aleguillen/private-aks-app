@@ -28,6 +28,8 @@ trigger:
   paths:
     include:
       - infra/ado-agent/*
+    exclude:
+      - infra/ado-agent/README.md
 
 variables:
   - group: ado_dev_vars
