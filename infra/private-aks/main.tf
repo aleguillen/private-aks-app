@@ -203,7 +203,7 @@ resource "null_resource" "acr_registries_record_bastion" {
       
       az account set --subscription $ARM_SUBSCRIPTION_ID
       
-      networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.bastion_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)
+      networkInterfaceID=$(az network private-endpoint show --ids ${azurerm_private_endpoint.bastion_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)
       
       privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)
             
@@ -259,7 +259,7 @@ resource "null_resource" "acr_registries_record_aks" {
       
       az account set --subscription $ARM_SUBSCRIPTION_ID
       
-      networkInterfaceID=$(az network private-endpoint show --ids ${data.azurerm_private_endpoint_connection.aks_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)
+      networkInterfaceID=$(az network private-endpoint show --ids ${azurerm_private_endpoint.aks_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)
       
       privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)
             
