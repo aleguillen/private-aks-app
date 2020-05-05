@@ -29,7 +29,8 @@ trigger:
     include:
       - infra/private-aks/*
     exclude:
-      - README.md
+      - infra/private-aks/README.md
+      - infra/private-aks/azure-pipelines.sh
 
 variables:
   - group: aks_dev_vars

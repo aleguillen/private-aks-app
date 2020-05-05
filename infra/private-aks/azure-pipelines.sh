@@ -88,7 +88,8 @@ storagekey='PipelineWillGetThisValueRuntime' \
 terraformstorageaccount=$terraformstorageaccount \
 terraformstoragerg=$terraformstoragerg \
 terraformstoragecontainer=$terraformstoragecontainer \
-terraformstorageblobname='$(prefix)/$(environment)/terraform.tfstate'
+terraformstorageblobname='$(prefix)/$(environment)/terraform.tfstate' \
+build_id='$(Build.BuildId)'
 
 # Create Variable Secrets
 VAR_GROUP_ID=$(az pipelines variable-group list --group-name aks_dev_vars --top 1 --query "[0].id" -o tsv)
