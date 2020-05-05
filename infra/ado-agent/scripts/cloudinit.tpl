@@ -55,11 +55,11 @@ runcmd:
  # Downloding and installing VSTS agent package
  #
  - echo "[$(date +%F_%T)] Downloading Agent"
- - chmod o+rwx -R /azagent
+ - chmod ugo+rwx -R /azagent
  - curl -fkSL -o vsts-agent.tar.gz https://vstsagentpackage.azureedge.net/agent/2.164.8/vsts-agent-linux-x64-2.164.8.tar.gz
  - echo "[$(date +%F_%T)] Extracting Agent"
  - tar -zxvf vsts-agent.tar.gz 
- - chmod o+rwx -R /azagent
+ - chmod ugo+rwx -R /azagent
  - echo "[$(date +%F_%T)] Running installdependencies.sh"
  - ./bin/installdependencies.sh
  - echo "[$(date +%F_%T)] Running config.sh"
