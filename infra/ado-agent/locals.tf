@@ -26,7 +26,7 @@ locals {
   ado_nic_name   = "${var.prefix}-${var.environment_name}-ado-vm-nic"
 
   # Terraform
-  tf_container_name = "${var.prefix}-${var.environment_name}-terraform"
+  tf_container_name = "terraform"
   
   blob_private_dns_link_name = "${var.prefix}-${var.environment_name}-blob-link"
 }

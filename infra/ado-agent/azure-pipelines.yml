@@ -30,6 +30,7 @@ trigger:
       - infra/ado-agent/*
     exclude:
       - infra/ado-agent/README.md
+      - infra/ado-agent/azure-pipelines.sh
 
 variables:
   - group: ado_dev_vars
