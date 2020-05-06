@@ -8,6 +8,12 @@ resource "azurerm_resource_group" "ado" {
         display_name = "ADO Resource Group"
     }
   )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Network Security Group - prevent inbound internet connection.
@@ -22,6 +28,12 @@ resource "azurerm_network_security_group" "ado" {
         display_name = "ADO Network Security Group - Default Subnet"
     }
   )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Virtual Network
@@ -37,6 +49,12 @@ resource "azurerm_virtual_network" "ado" {
         display_name = "ADO Virtual Network"
     }
   )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Subnet
@@ -58,146 +76,194 @@ resource "azurerm_subnet_network_security_group_association" "ado" {
 
 # CREATE: Storage Account for Boot Diagnostics
 resource "azurerm_storage_account" "diag" {
-    name                     = "diag${substr(md5(azurerm_resource_group.ado.id),0,15)}sa"
-    resource_group_name      = azurerm_resource_group.ado.name
-    location                 = azurerm_resource_group.ado.location
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "diag${substr(md5(azurerm_resource_group.ado.id),0,15)}sa"
+  resource_group_name      = azurerm_resource_group.ado.name
+  location                 = azurerm_resource_group.ado.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags = merge(
-        local.common_tags, 
-        {
-            display_name = "Diagnostics Storage Account"
-        }
-    )
+  tags = merge(
+      local.common_tags, 
+      {
+          display_name = "Diagnostics Storage Account"
+      }
+  )
+    
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Private Endpoint to Blob Storage for Diagnostics
 resource "azurerm_private_endpoint" "diag" {
-    name                = "${azurerm_storage_account.diag.name}-pe"
-    location            = azurerm_resource_group.ado.location
-    resource_group_name = azurerm_resource_group.ado.name
-    subnet_id           = azurerm_subnet.ado.id
+  name                = "${azurerm_storage_account.diag.name}-pe"
+  location            = azurerm_resource_group.ado.location
+  resource_group_name = azurerm_resource_group.ado.name
+  subnet_id           = azurerm_subnet.ado.id
 
-    private_service_connection {
-      name                           = "${azurerm_storage_account.diag.name}-pecon"
-      private_connection_resource_id = azurerm_storage_account.diag.id
-      is_manual_connection           = false
-      subresource_names              = ["blob"]
-    }
+  private_service_connection {
+    name                           = "${azurerm_storage_account.diag.name}-pecon"
+    private_connection_resource_id = azurerm_storage_account.diag.id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+
+  tags = merge(
+      local.common_tags, 
+      {
+          display_name = "Private Endpoint to connect to Diagnostics Storage Account"
+      }
+  )
   
-    tags = merge(
-        local.common_tags, 
-        {
-            display_name = "Private Endpoint to connect to Diagnostics Storage Account"
-        }
-    )
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Storage Account for Terraform State file
 resource "azurerm_storage_account" "ado" {
-    name                     = "tf${substr(md5(azurerm_resource_group.ado.id),0,15)}sa"
-    resource_group_name      = azurerm_resource_group.ado.name
-    location                 = azurerm_resource_group.ado.location
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "tf${substr(md5(azurerm_resource_group.ado.id),0,15)}sa"
+  resource_group_name      = azurerm_resource_group.ado.name
+  location                 = azurerm_resource_group.ado.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags = merge(
-        local.common_tags, 
-        {
-            display_name = "Terraform Storage Account"
-        }
-    )
+  tags = merge(
+      local.common_tags, 
+      {
+          display_name = "Terraform Storage Account"
+      }
+  )
+    
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Storage Account Container for Terraform State file
 resource "azurerm_storage_container" "ado" {
-    name                  = local.tf_container_name
-    storage_account_name  = azurerm_storage_account.ado.name
-    container_access_type = "private"
+  name                  = local.tf_container_name
+  storage_account_name  = azurerm_storage_account.ado.name
+  container_access_type = "private"
 }
 
 # CREATE: Private Endpoint to Terraform Blob Storage
 resource "azurerm_private_endpoint" "ado" {
-    name                = "${azurerm_storage_account.ado.name}-pe"
-    location            = azurerm_resource_group.ado.location
-    resource_group_name = azurerm_resource_group.ado.name
-    subnet_id           = azurerm_subnet.ado.id
+  name                = "${azurerm_storage_account.ado.name}-pe"
+  location            = azurerm_resource_group.ado.location
+  resource_group_name = azurerm_resource_group.ado.name
+  subnet_id           = azurerm_subnet.ado.id
 
-    private_service_connection {
-      name                           = "${azurerm_storage_account.ado.name}-pecon"
-      private_connection_resource_id = azurerm_storage_account.ado.id
-      is_manual_connection           = false
-      subresource_names              = ["blob"]
-    }
+  private_service_connection {
+    name                           = "${azurerm_storage_account.ado.name}-pecon"
+    private_connection_resource_id = azurerm_storage_account.ado.id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+
+  tags = merge(
+      local.common_tags, 
+      {
+          display_name = "Private Endpoint to connect to Storage Account"
+      }
+  )
   
-    tags = merge(
-        local.common_tags, 
-        {
-            display_name = "Private Endpoint to connect to Storage Account"
-        }
-    )
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Private DNS zone to blob endpoint
 resource "azurerm_private_dns_zone" "blob" {
-    name                = "privatelink.blob.core.windows.net"  
-    resource_group_name = azurerm_resource_group.ado.name
-    
-    tags = merge(
-        local.common_tags, 
-        {
-            display_name = "Private DNS zone to resolve storage private endpoint."
-        }
-    )
+  name                = "privatelink.blob.core.windows.net"  
+  resource_group_name = azurerm_resource_group.ado.name
+  
+  tags = merge(
+      local.common_tags, 
+      {
+          display_name = "Private DNS zone to resolve storage private endpoint."
+      }
+  )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: A record to Terraform Blob Storage.
 resource "azurerm_private_dns_a_record" "tf" {
-    name                = azurerm_storage_account.ado.name
-    zone_name           = azurerm_private_dns_zone.blob.name
-    resource_group_name = azurerm_resource_group.ado.name
-    ttl                 = 3600
-    records             = [azurerm_private_endpoint.ado.private_service_connection.0.private_ip_address]
+  name                = azurerm_storage_account.ado.name
+  zone_name           = azurerm_private_dns_zone.blob.name
+  resource_group_name = azurerm_resource_group.ado.name
+  ttl                 = 3600
+  records             = [azurerm_private_endpoint.ado.private_service_connection.0.private_ip_address]
+  
+  tags = merge(
+      local.common_tags, 
+      {
+          display_name = "Private DNS record to Blob endpoint."
+      }
+  )
     
-    tags = merge(
-        local.common_tags, 
-        {
-            display_name = "Private DNS record to Blob endpoint."
-        }
-    )
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: A record to Diagnostics Blob Storage.
 resource "azurerm_private_dns_a_record" "diag" {
-    name                = azurerm_storage_account.diag.name
-    zone_name           = azurerm_private_dns_zone.blob.name
-    resource_group_name = azurerm_resource_group.ado.name
-    ttl                 = 3600
-    records             = [azurerm_private_endpoint.diag.private_service_connection.0.private_ip_address]
+  name                = azurerm_storage_account.diag.name
+  zone_name           = azurerm_private_dns_zone.blob.name
+  resource_group_name = azurerm_resource_group.ado.name
+  ttl                 = 3600
+  records             = [azurerm_private_endpoint.diag.private_service_connection.0.private_ip_address]
+  
+  tags = merge(
+      local.common_tags, 
+      {
+          display_name = "Private DNS record to Diagnostics Blob endpoint."
+      }
+  )
     
-    tags = merge(
-        local.common_tags, 
-        {
-            display_name = "Private DNS record to Diagnostics Blob endpoint."
-        }
-    )
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Link Private DNS zone with Virtual Network
 resource "azurerm_private_dns_zone_virtual_network_link" "ado" {
-    name                  = local.blob_private_dns_link_name
-    resource_group_name   = azurerm_resource_group.ado.name
-    private_dns_zone_name = azurerm_private_dns_zone.blob.name
-    virtual_network_id    = azurerm_virtual_network.ado.id
-    registration_enabled  = false
+  name                  = local.blob_private_dns_link_name
+  resource_group_name   = azurerm_resource_group.ado.name
+  private_dns_zone_name = azurerm_private_dns_zone.blob.name
+  virtual_network_id    = azurerm_virtual_network.ado.id
+  registration_enabled  = false
+  
+  tags = merge(
+      local.common_tags, 
+      {
+          display_name = "Private DNS zone Link to VNET."
+      }
+  )
     
-    tags = merge(
-        local.common_tags, 
-        {
-            display_name = "Private DNS zone Link to VNET."
-        }
-    )
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 ################################################################
@@ -251,6 +317,12 @@ resource "azurerm_network_interface" "ado" {
         display_name = "NIC for ADO VM"
     }
   )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Azure Linux VM as Azure DevOps Agent
@@ -309,6 +381,12 @@ resource "azurerm_linux_virtual_machine" "ado" {
         display_name = "Azure DevOps VM"
     }
   )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Azure Linux VMSS as Azure DevOps Agent
@@ -380,6 +458,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "ado" {
         display_name = "Azure DevOps VMSS"
     }
   )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created"],
+    ]
+  }
 }
 
 # CREATE: Role Assignment to Subscriptions using Managed Identity of the Agent

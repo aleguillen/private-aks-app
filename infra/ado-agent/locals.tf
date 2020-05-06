@@ -10,7 +10,8 @@ locals {
     var.common_tags, 
     {
       environment = var.environment_name
-      last_modified_on  = formatdate("DD MMM YYYY hh:mm ZZZ", timestamp())
+      last_modified  = formatdate("DD MMM YYYY hh:mm ZZZ", timestamp())
+      created  = formatdate("DD MMM YYYY hh:mm ZZZ", timestamp())
     }
   )
   
