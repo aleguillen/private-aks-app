@@ -17,10 +17,6 @@ Deploy ACR with a private endpoint. Access ingress controller through private en
     
     # Update the extension to make sure you have the latest version installed
     az extension update --name aks-preview
-
-    # Install and confirm Azure DevOps extension.
-    az extension add --name azure-devops
-    az extension show --name azure-devops
     ```
 * Terraform version 0.12.24 or later.
     * See how to install Terraform [here](https://learn.hashicorp.com/terraform/azure/install_az).
