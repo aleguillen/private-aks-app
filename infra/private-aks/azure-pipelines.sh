@@ -20,6 +20,16 @@ location='eastus2'
 # Ex. For resource group: <prefix>-<environment>-rg
 prefix='aks001'
 
+# Azure Common tags. These tags will be apply to all created resources.
+# You can add/remove tags as needed. Example: 
+common_tags = '{
+    org_name    = "<replace-me>"
+    cost_center = "<replace-me>"
+    project     = "<replace-me>"
+    project_id  = "<replace-me>"
+    created_by  = "<replace-me>"
+}'
+
 # AKS Version
 aks_version='1.15.7'
 
@@ -71,6 +81,7 @@ az pipelines variable-group create \
 environment=$environment \
 location=$location \
 prefix=$prefix \
+common_tags=$common_tags \
 aks_version=$aks_version \
 aks_service_principal_client_id=$aks_service_principal_client_id \
 aks_service_principal_id=$aks_service_principal_id \

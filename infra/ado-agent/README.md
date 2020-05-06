@@ -6,6 +6,8 @@ Azure self-hosted agent pool configuration. This will create a VM or VMSS and co
 
 * Create ADO Variable group **ado_dev_vars**. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly. Create ADO Infra Pipeline [from CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli). See [here](/infra/ado-agent/azure-pipelines.sh) for full script.
 ```bash
+#!/bin/bash
+
 # Adding Azure DevOps Extension
 az extension add --name azure-devops
 
@@ -25,6 +27,16 @@ location='eastus2'
 # Prefix for all your resources. Use alphanumeric characters only. Avoid special characters. Ex. ado001
 # Ex. For resource group: <prefix>-<environment>-rg
 prefix='ado001'
+
+# Azure Common tags. These tags will be apply to all created resources.
+# You can add/remove tags as needed. Example: 
+common_tags = '{
+    org_name    = "<replace-me>"
+    cost_center = "<replace-me>"
+    project     = "<replace-me>"
+    project_id  = "<replace-me>"
+    created_by  = "<replace-me>"
+}'
 
 # Virtual Machine Credentials
 vm_username='adoadmin' 
@@ -77,6 +89,7 @@ az pipelines variable-group create \
 environment=$environment \
 location=$location \
 prefix=$prefix \
+common_tags=$common_tags \
 vm_username=$vm_username \
 ado_vmss_enabled=$ado_vmss_enabled \
 ado_vmss_instances=$ado_vmss_instances \

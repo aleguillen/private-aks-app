@@ -1,8 +1,18 @@
 locals {
+  # General
   rg_name   = "${var.prefix}-${var.environment_name}-rg"
   
   vnet_name   = "${var.prefix}-${var.environment_name}-vnet"
 
+  common_tags = merge(
+    var.common_tags, 
+    {
+      environment = var.environment_name
+      last_modified_on  = formatdate("DD MMM YYYY hh:mm ZZZ", timestamp())
+    }
+  )
+  
+  # Azure Kubernetes Service
   aks_private_link_service_name = "${var.prefix}-${var.environment_name}-aks-pls"
 
   aks_private_link_endpoint_name = "${var.prefix}-${var.environment_name}-aks-pe"
@@ -11,6 +21,15 @@ locals {
   
   aks_private_dns_link_name = "${var.prefix}-${var.environment_name}-aks-dns-link"
 
+  aks_rg_name = "MC_${local.rg_name}_${local.aks_name}_${var.location}"
+
+  aks_name = "${var.prefix}-${var.environment_name}-aks"
+
+  aks_dns_prefix = "${var.prefix}${var.environment_name}aks"
+
+  aks_node_count = 1
+
+  # Azure Container Registry
   acr_name = "${var.prefix}${var.environment_name}acr"
 
   acr_bastion_private_link_endpoint_name = "${var.prefix}-${var.environment_name}-acr-bastion-pe"
@@ -25,22 +44,9 @@ locals {
   
   acr_private_dns_link_name = "${var.prefix}-${var.environment_name}-acr-dns-link"
   
-  aks_rg_name = "MC_${local.rg_name}_${local.aks_name}_${var.location}"
-
-  aks_name = "${var.prefix}-${var.environment_name}-aks"
-
-  aks_dns_prefix = "${var.prefix}${var.environment_name}aks"
-
-  aks_node_count = 1
-
+  # Log Analytics - Monitor
   log_analytics_workspace_name = "${var.prefix}-${var.environment_name}-law"
   
   log_analytics_workspace_sku = "PerGB2018"
 
-
-  common_tags = {
-    environment = var.environment_name
-    source      = "terraform"
-    owner       = "Alejandra Guillen"
-  }
 }

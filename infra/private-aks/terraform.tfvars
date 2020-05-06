@@ -4,6 +4,8 @@ environment_name = "__environment__"
 
 location = "__location__"
 
+common_tags = __common_tags__
+
 aks_service_principal_client_id = "__aks_service_principal_client_id__"
 
 aks_service_principal_client_secret = "__aks_service_principal_client_secret__"

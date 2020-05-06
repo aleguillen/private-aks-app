@@ -14,6 +14,12 @@ variable "location" {
   description = "The Azure region where your resources will be created."
 }
 
+variable "common_tags" {
+    type = map(string)
+    description = "Common resources tags. Key-value pair"
+    default = {}
+}
+
 variable "aks_service_principal_client_id" {
   type        = string
   description = "The Client ID of the Service Principal."

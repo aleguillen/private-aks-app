@@ -20,6 +20,16 @@ location='eastus2'
 # Ex. For resource group: <prefix>-<environment>-rg
 prefix='ado001'
 
+# Azure Common tags. These tags will be apply to all created resources.
+# You can add/remove tags as needed. Example: 
+common_tags = '{
+    org_name    = "<replace-me>"
+    cost_center = "<replace-me>"
+    project     = "<replace-me>"
+    project_id  = "<replace-me>"
+    created_by  = "<replace-me>"
+}'
+
 # Virtual Machine Credentials
 vm_username='adoadmin' 
 vm_password='<replace-me>'
@@ -71,6 +81,7 @@ az pipelines variable-group create \
 environment=$environment \
 location=$location \
 prefix=$prefix \
+common_tags=$common_tags \
 vm_username=$vm_username \
 ado_vmss_enabled=$ado_vmss_enabled \
 ado_vmss_instances=$ado_vmss_instances \
