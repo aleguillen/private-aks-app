@@ -9,6 +9,7 @@ locals {
     {
       environment = var.environment_name
       last_modified_on  = formatdate("DD MMM YYYY hh:mm ZZZ", timestamp())
+      created_on  = formatdate("DD MMM YYYY hh:mm ZZZ", timestamp())
     }
   )
   
@@ -32,15 +33,15 @@ locals {
   # Azure Container Registry
   acr_name = "${var.prefix}${var.environment_name}acr"
 
-  acr_bastion_private_link_endpoint_name = "${var.prefix}-${var.environment_name}-acr-bastion-pe"
+  acr_ado_private_link_endpoint_name = "${var.prefix}-${var.environment_name}-acr-ado-pe"
 
-  acr_bastion_private_link_endpoint_connection_name = "${var.prefix}-${var.environment_name}-acr-bastion-connection"
+  acr_ado_private_link_endpoint_connection_name = "${var.prefix}-${var.environment_name}-acr-ado-connection"
 
   acr_private_link_endpoint_name = "${var.prefix}-${var.environment_name}-acr-pe"
 
   acr_private_link_endpoint_connection_name = "${var.prefix}-${var.environment_name}-aks-connection"
   
-  acr_bastion_private_dns_link_name = "${var.prefix}-${var.environment_name}-acr-bastion-dns-link"
+  acr_ado_private_dns_link_name = "${var.prefix}-${var.environment_name}-acr-ado-dns-link"
   
   acr_private_dns_link_name = "${var.prefix}-${var.environment_name}-acr-dns-link"
   

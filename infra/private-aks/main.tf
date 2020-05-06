@@ -7,7 +7,13 @@ resource "azurerm_resource_group" "k8s" {
     {
         display_name = "App AKS Resource Group"
     }
-    )
+  )
+
+  lifecycle {
+    ignore_changes = [
+      tags["created_on"],
+    ]
+  }
 }
 
 # CREATE: AKS VNET and Subnets
@@ -23,6 +29,12 @@ resource "azurerm_virtual_network" "k8s" {
         display_name = "AKS Virtual Network"
     }
   )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created_on"],
+    ]
+  }
 }
 
 resource "azurerm_subnet" "proxy" {
@@ -63,6 +75,12 @@ resource "azurerm_log_analytics_workspace" "monitor" {
         display_name = "Log Analitics Workspace for Container Insights"
     }
   )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created_on"],
+    ]
+  }
 }
 
 resource "azurerm_log_analytics_solution" "monitor" {
@@ -93,28 +111,34 @@ resource "azurerm_container_registry" "acr" {
         display_name = "Azure Container Registry"
     }
   )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created_on"],
+    ]
+  }
 }
 
 ##
-# CREATE: Private Endpoint in Bastion Subnet to ACR
+# CREATE: Private Endpoint in ado Subnet to ACR
 ##
 
-data "azurerm_subnet" "bastion_pe" {
+data "azurerm_subnet" "ado_pe" {
   name                 = var.pe_subnet_name
   resource_group_name  = var.pe_rg_name
   virtual_network_name = var.pe_vnet_name
 }
 
-data "azurerm_virtual_network" "bastion_pe" {
+data "azurerm_virtual_network" "ado_pe" {
   resource_group_name = var.pe_rg_name
   name = var.pe_vnet_name
 }
 
 # Update PE Subnet - setting enforce_private_link_endpoint_network_policies to true
 # Using Null resource and local-exec, since resource was created previously and not imported into this state file.
-resource "null_resource" "azurerm_subnet_bastion_pe" {
+resource "null_resource" "azurerm_subnet_ado_pe" {
   triggers = {
-    enforce_private_link_endpoint_network_policies = data.azurerm_subnet.bastion_pe.enforce_private_link_endpoint_network_policies
+    enforce_private_link_endpoint_network_policies = data.azurerm_subnet.ado_pe.enforce_private_link_endpoint_network_policies
   }
 
   provisioner "local-exec" {
@@ -123,28 +147,28 @@ resource "null_resource" "azurerm_subnet_bastion_pe" {
       
       az account set --subscription $ARM_SUBSCRIPTION_ID
 
-      az network vnet subnet update --ids ${data.azurerm_subnet.bastion_pe.id} --disable-private-endpoint-network-policies true 
+      az network vnet subnet update --ids ${data.azurerm_subnet.ado_pe.id} --disable-private-endpoint-network-policies true 
     EOT
   }
 }
 
-resource "azurerm_private_endpoint" "bastion_acr_pe" {
-  name                = local.acr_bastion_private_link_endpoint_name
+resource "azurerm_private_endpoint" "ado_acr_pe" {
+  name                = local.acr_ado_private_link_endpoint_name
   location            = azurerm_resource_group.k8s.location
   resource_group_name = var.pe_rg_name
 
-  subnet_id           = data.azurerm_subnet.bastion_pe.id
+  subnet_id           = data.azurerm_subnet.ado_pe.id
   
   private_service_connection {
     is_manual_connection = var.pe_is_manual_connection
     request_message = var.pe_is_manual_connection == "true" ? var.pe_request_message : null
-    name = local.acr_bastion_private_link_endpoint_connection_name
+    name = local.acr_ado_private_link_endpoint_connection_name
     private_connection_resource_id = azurerm_container_registry.acr.id
     subresource_names = ["registry"]
   }
 
   depends_on = [
-    null_resource.azurerm_subnet_bastion_pe
+    null_resource.azurerm_subnet_ado_pe
   ]
 }
 
@@ -168,31 +192,31 @@ resource "azurerm_private_endpoint" "aks_acr_pe" {
 }
 
 ##
-# CREATE: Private DNS Zone for ACR in Bastion VNET
+# CREATE: Private DNS Zone for ACR in ado VNET
 ##
-resource "azurerm_private_dns_zone" "bastion_dns_zone" {
+resource "azurerm_private_dns_zone" "ado_dns_zone" {
   name                = "privatelink.azurecr.io"  
   resource_group_name = var.pe_rg_name
 }
 
 resource "azurerm_private_dns_a_record" "registry_record2" {
   name                = "${azurerm_container_registry.acr.name}.${azurerm_container_registry.acr.location}.data"
-  zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
+  zone_name           = azurerm_private_dns_zone.ado_dns_zone.name
   resource_group_name = var.pe_rg_name
   ttl                 = 3600
-  records             = [azurerm_private_endpoint.bastion_acr_pe.private_service_connection.0.private_ip_address]
+  records             = [azurerm_private_endpoint.ado_acr_pe.private_service_connection.0.private_ip_address]
 }
 
 # Moving to null_resource, since output of azurerm_private_endpoint does not contain all private ip address created for the PE.
 # resource "azurerm_private_dns_a_record" "registry_record" {
 #   name                = azurerm_container_registry.acr.name
-#   zone_name           = azurerm_private_dns_zone.bastion_dns_zone.name
+#   zone_name           = azurerm_private_dns_zone.ado_dns_zone.name
 #   resource_group_name = var.pe_rg_name
 #   ttl                 = 3600
-#   records             = [azurerm_private_endpoint.bastion_acr_pe.private_service_connection.1.private_ip_address]
+#   records             = [azurerm_private_endpoint.ado_acr_pe.private_service_connection.1.private_ip_address]
 # }
 
-resource "null_resource" "acr_registries_record_bastion" {
+resource "null_resource" "acr_registries_record_ado" {
   triggers = {
     always_run = uuid()
   }
@@ -203,24 +227,24 @@ resource "null_resource" "acr_registries_record_bastion" {
       
       az account set --subscription $ARM_SUBSCRIPTION_ID
       
-      networkInterfaceID=$(az network private-endpoint show --ids ${azurerm_private_endpoint.bastion_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)
+      networkInterfaceID=$(az network private-endpoint show --ids ${azurerm_private_endpoint.ado_acr_pe.id} --query 'networkInterfaces[0].id' --output tsv)
       
       privateIP=$(az resource show --ids $networkInterfaceID --api-version 2019-04-01 --query 'properties.ipConfigurations[1].properties.privateIPAddress' --output tsv)
             
-      if [ "$(az network private-dns record-set a list -g ${var.pe_rg_name} -z ${azurerm_private_dns_zone.bastion_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}'].aRecords[0].ipv4Address" -o tsv)" = "" ] 
+      if [ "$(az network private-dns record-set a list -g ${var.pe_rg_name} -z ${azurerm_private_dns_zone.ado_dns_zone.name} --query "[?name=='${azurerm_container_registry.acr.name}'].aRecords[0].ipv4Address" -o tsv)" = "" ] 
       then
-        az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.bastion_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP
+        az network private-dns record-set a add-record --record-set-name ${azurerm_container_registry.acr.name} --zone-name ${azurerm_private_dns_zone.ado_dns_zone.name} --resource-group ${var.pe_rg_name} --ipv4-address $privateIP
       fi
       
     EOT
   }
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_bastion" {
-  name                  = local.acr_bastion_private_dns_link_name
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_ado" {
+  name                  = local.acr_ado_private_dns_link_name
   resource_group_name   = var.pe_rg_name
-  private_dns_zone_name = azurerm_private_dns_zone.bastion_dns_zone.name
-  virtual_network_id    = data.azurerm_virtual_network.bastion_pe.id
+  private_dns_zone_name = azurerm_private_dns_zone.ado_dns_zone.name
+  virtual_network_id    = data.azurerm_virtual_network.ado_pe.id
 }
 
 ##
@@ -336,7 +360,8 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   lifecycle {
     # Current open bug related to updating AKS: https://github.com/terraform-providers/terraform-provider-azurerm/issues/6525 
     ignore_changes = [
-      networkProfile
+      network_profile,
+      tags["created_on"]
     ]
   }
 }
@@ -350,15 +375,15 @@ resource "azurerm_role_assignment" "subnet_role_assignment" {
 }
 
 ##
-# CREATE: Private Endpoint and Private DNS Zone on the Bastion Deployment for connectivity
+# CREATE: Private Endpoint and Private DNS Zone on the ado Deployment for connectivity
 ##
 
-resource "azurerm_private_endpoint" "bastion_aks_pe" {
+resource "azurerm_private_endpoint" "ado_aks_pe" {
   name                = local.aks_private_link_endpoint_name
   location            = azurerm_resource_group.k8s.location
   resource_group_name = var.pe_rg_name
 
-  subnet_id           = data.azurerm_subnet.bastion_pe.id
+  subnet_id           = data.azurerm_subnet.ado_pe.id
   
   private_service_connection {
     is_manual_connection = var.pe_is_manual_connection
@@ -366,6 +391,19 @@ resource "azurerm_private_endpoint" "bastion_aks_pe" {
     name = local.aks_private_link_endpoint_connection_name
     private_connection_resource_id = azurerm_kubernetes_cluster.k8s.id
     subresource_names = ["management"]
+  }
+
+  tags = merge(
+    local.common_tags, 
+    {
+        display_name = "ADO to AKS Private Endpoint"
+    }
+  )
+  
+  lifecycle {
+    ignore_changes = [
+      tags["created_on"],
+    ]
   }
 }
 
@@ -379,12 +417,12 @@ resource "azurerm_private_dns_a_record" "record" {
   zone_name           = azurerm_private_dns_zone.privatedns.name
   resource_group_name = var.pe_rg_name
   ttl                 = 3600
-  records             = [azurerm_private_endpoint.bastion_aks_pe.private_service_connection.0.private_ip_address]
+  records             = [azurerm_private_endpoint.ado_aks_pe.private_service_connection.0.private_ip_address]
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "example" {
   name                  = local.aks_private_dns_link_name
   resource_group_name   = var.pe_rg_name
   private_dns_zone_name = azurerm_private_dns_zone.privatedns.name
-  virtual_network_id    = data.azurerm_virtual_network.bastion_pe.id
+  virtual_network_id    = data.azurerm_virtual_network.ado_pe.id
 }
