@@ -6,18 +6,35 @@ Deploy ACR with a private endpoint. Access ingress controller through private en
 
 ## Pre-requisites
 
-* Azure CLI version 2.0.77 or later, and the Azure CLI AKS Preview extension version 0.4.18
-* Terraform version 0.12.20 or later.
-* Azure DevOps project and Git repo.
-* Install Azure DevOps Extension.
-```bash
-# Confirm AZ CLI installation
-az --version
+* Azure CLI version 2.0.77 or later, and the Azure CLI AKS Preview extension version 0.4.18.
+    * See how to install Azure CLI [here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest).
+    ```bash
+    # Confirm AZ CLI installation
+    az --version
 
-# Install and confirm Azure DevOps extension.
-az extension add --name azure-devops
-az extension show --name azure-devops
-```
+    # Install the aks-preview extension
+    az extension add --name aks-preview
+    
+    # Update the extension to make sure you have the latest version installed
+    az extension update --name aks-preview
+
+    # Install and confirm Azure DevOps extension.
+    az extension add --name azure-devops
+    az extension show --name azure-devops
+    ```
+* Terraform version 0.12.24 or later.
+    * See how to install Terraform [here](https://learn.hashicorp.com/terraform/azure/install_az).
+* Install Azure DevOps Extension.
+    ```bash
+    # Confirm AZ CLI installation
+    az --version
+
+    # Install and confirm Azure DevOps extension.
+    az extension add --name azure-devops
+    az extension show --name azure-devops
+    ```
+* Git to manage your repository locally.
+    *  See how to install [here](https://git-scm.com/downloads).
 
 ## Infrastructure
 
@@ -71,35 +88,36 @@ To walk through a quick deployment of this application, see the AKS [quick start
 ## Azure DevOps Configuration 
 
 ### General setup
-* [Login](https://dev.azure.com) into your Azure DevOps Organization.
+* [Login or Sign Up](https://dev.azure.com) into your Azure DevOps Organization.
 * Create a new project in Azure DevOps, for information see [here](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project).
     * Sample name: **private-aks-app**
-* We will be using **Default** Agent Pool. Alternately you can create a new Agent Pool in your project, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/pools-queues), if you do update all pipelines files **azure-pipelines.yml** file and variable group value.
-    * Example Name: **UbuntuPrivatePool**
-    * Keep option **Grant access permission to all pipelines** checked.
+* We will be using **Default** Agent Pool. 
+    *Alternately you can create a new Agent Pool in your project, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/pools-queues), if you do update all pipelines files **azure-pipelines.yml** file and variable group value.
+        * Example Name: **UbuntuPrivatePool**
+        * Keep option **Grant access permission to all pipelines** checked.
 * Create a new Azure Service Connection to your Azure Subscription, for more information see [here](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints)
     * Azure CLI script:
-    ```bash
-    # Login and select Azure Subscription context
-    az login
-    az account set --subscription <my-subscription-id-or-name>
-    
-    # Retrieve Account and Subscription details
-    TENANT_ID=$(az account show --query tenantId -o tsv)
-    SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-    SUBSCRIPTION_NAME=$(az account show --query name -o tsv)
-    APP_NAME="ado-sp-private-aks-app-${SUBSCRIPTION_ID}"
-    
-    # Create Service Principal and get Password created
-    APP_PWD=$(az ad sp create-for-rbac --name $APP_NAME --role Owner --scopes "subscriptions/${SUBSCRIPTION_ID}" --query "password" -o tsv)
-    
-    # Get other Service Principal details
-    APP_ID=$(az ad app list --display-name $APP_NAME --query [].appId -o tsv)
-    SP_ID=$(az ad sp list --display-name $APP_NAME --query "objectId" -o tsv)
-    
-    # Create Service Connection in Azure DevOps to Azure RM.
-    az devops service-endpoint azurerm create --azure-rm-service-principal-id $SP_ID --azure-rm-subscription-id $SUBSCRIPTION_ID --azure-rm-subscription-name $SUBSCRIPTION_NAME --azure-rm-tenant-id $TENANT_ID --name "Azure Subscription"
-    ```
+        ```bash
+        # Login and select Azure Subscription context
+        az login
+        az account set --subscription <my-subscription-id-or-name>
+        
+        # Retrieve Account and Subscription details
+        TENANT_ID=$(az account show --query tenantId -o tsv)
+        SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        SUBSCRIPTION_NAME=$(az account show --query name -o tsv)
+        APP_NAME="ado-sp-private-aks-app-${SUBSCRIPTION_ID}"
+        
+        # Create Service Principal and get Password created
+        APP_PWD=$(az ad sp create-for-rbac --name $APP_NAME --role Owner --scopes "subscriptions/${SUBSCRIPTION_ID}" --query "password" -o tsv)
+        
+        # Get other Service Principal details
+        APP_ID=$(az ad app list --display-name $APP_NAME --query [].appId -o tsv)
+        SP_ID=$(az ad sp list --display-name $APP_NAME --query "objectId" -o tsv)
+        
+        # Create Service Connection in Azure DevOps to Azure RM.
+        az devops service-endpoint azurerm create --azure-rm-service-principal-id $SP_ID --azure-rm-subscription-id $SUBSCRIPTION_ID --azure-rm-subscription-name $SUBSCRIPTION_NAME --azure-rm-tenant-id $TENANT_ID --name "Azure Subscription"
+        ```
     * Azure DevOps Portal:
         * Connection type: **Azure Resource Manager**.
         * Authentication Method: **Service Principal (automatic)** - this option will automatically create the Service Principal on your behalf, if you don't have permissions to create a Service Principal please use the manual option. This demo requires to set RBAC for the Private Cluster, this Service Principal requires to have 
@@ -113,10 +131,10 @@ To walk through a quick deployment of this application, see the AKS [quick start
     * Git source Url: https://github.com/aleguillen/private-aks-app.git
 * (Optional) Clone imported repo in your local computer, for more info see [here](https://docs.microsoft.com/en-us/azure/devops/repos/git/clone).
 * Configure Azure DevOps CLI
-```bash
-# Make sure your Azure DevOps defaults include the organization and project from the command prompt
-az devops configure --defaults organization=https://dev.azure.com/<your-organization> project=<your-project>
+    ```bash
+    # Make sure your Azure DevOps defaults include the organization and project from the command prompt
+    az devops configure --defaults organization=https://dev.azure.com/<your-organization> project=<your-project>
 
-# Sign in to the Azure CLI
-az login
-```
+    # Sign in to the Azure CLI
+    az login
+    ```

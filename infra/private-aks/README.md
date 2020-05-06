@@ -1,10 +1,8 @@
 # Private AKS Cluster
 
-Deploying private infrastructure for Azure Kubernetes Services (AKS). You can execute this locally or using Azure Pipelines.
+Deploying private access Azure Kubernetes Services (AKS) cluster. On this example we will be using private Azure Container Registry (ACR) with Private Link. You can execute this locally or using Azure Pipelines.
 
 ## Azure Pipelines Setup
-
-* Create AKS Variable group **aks_dev_vars**. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly. 
 
 * Create ADO Variable group **aks_dev_vars**. Replace variables with your own preferred values, also check for all **<replace-me>** values and update them accordingly. Create AKS Infra Pipeline [from CLI](https://docs.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline-cli). See [here](/infra/private-aks/azure-pipelines.sh) for full script.
 ```bash
@@ -29,6 +27,16 @@ location='eastus2'
 # Prefix for all your resources. Use alphanumeric characters only. Avoid special characters. Ex. ado001
 # Ex. For resource group: <prefix>-<environment>-rg
 prefix='aks001'
+
+# Azure Common tags. These tags will be apply to all created resources.
+# You can add/remove tags as needed. Example: 
+common_tags = '{
+    org_name    = "<replace-me>"
+    cost_center = "<replace-me>"
+    project     = "<replace-me>"
+    project_id  = "<replace-me>"
+    created_by  = "<replace-me>"
+}'
 
 # AKS Version
 aks_version='1.15.7'
@@ -55,6 +63,11 @@ pe_subnet_name='<replace-me>'
 pe_is_manual_connection=false
 pe_request_message=''
 
+# Terraform Storage Account Details - Storage Account created for ADO Self-Hosted Agent
+terraformstorageaccount='<replace-me>'
+terraformstoragerg='<replace-me>'
+terraformstoragecontainer='terraform'
+
 # ADO variable group name - if you change this name you will need to change azure-pipelines.yml file.
 ado_var_group_name='aks_dev_vars'
 
@@ -76,6 +89,7 @@ az pipelines variable-group create \
 environment=$environment \
 location=$location \
 prefix=$prefix \
+common_tags=$common_tags \
 aks_version=$aks_version \
 aks_service_principal_client_id=$aks_service_principal_client_id \
 aks_service_principal_id=$aks_service_principal_id \
@@ -90,8 +104,11 @@ vnet_name='$(prefix)-$(environment)-vnet' \
 acr_name='$(prefix)$(environment)acr' \
 acr='$(acr_name).azurecr.io' \
 storagekey='PipelineWillGetThisValueRuntime' \
-terraformstorageaccount='tf$(prefix)$(environment)sa' \
-terraformstoragerg='tf-$(prefix)-$(environment)-rg' 
+terraformstorageaccount=$terraformstorageaccount \
+terraformstoragerg=$terraformstoragerg \
+terraformstoragecontainer=$terraformstoragecontainer \
+terraformstorageblobname='$(prefix)/$(environment)/terraform.tfstate' \
+build_id='$(Build.BuildId)'
 
 # Create Variable Secrets
 VAR_GROUP_ID=$(az pipelines variable-group list --group-name aks_dev_vars --top 1 --query "[0].id" -o tsv)
