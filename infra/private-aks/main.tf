@@ -332,6 +332,13 @@ resource "azurerm_kubernetes_cluster" "k8s" {
         display_name = "AKS Cluster"
     }
   )
+
+  lifecycle {
+    # Current open bug related to updating AKS: https://github.com/terraform-providers/terraform-provider-azurerm/issues/6525 
+    ignore_changes = [
+      networkProfile
+    ]
+  }
 }
 
 # Add Subnet role assigment for Ingress Internal LB to be created. 

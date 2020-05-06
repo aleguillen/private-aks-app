@@ -128,7 +128,7 @@ az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/app/azure-pipel
 
 ## Running with Terraform locally
 
-* Copy and paste file **terraform.tfvars** and name the new file **terraform.auto.tfvar** use this new file to set your local variables values. Terraform will use this file instead for local executions.
+* Copy and paste file **terraform.tfvars** and name the new file **terraform.auto.tfvars** use this new file to set your local variables values. Terraform will use this file instead for local executions, for more information see [here](https://www.terraform.io/docs/configuration/variables.html#variable-definition-precedence).
 * Comment 'backend "azurerm" {}' line inside **versions.tf** (line 9). You can use Azure CLI authentication locally.
 * Run the following commands.
 
