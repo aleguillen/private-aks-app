@@ -2,8 +2,8 @@ output "acr_id" {
   value = azurerm_container_registry.acr.id
 }
 
-output "bastion_subnet" {
-  value = data.azurerm_subnet.bastion_pe.id
+output "ado_subnet" {
+  value = data.azurerm_subnet.ado_pe.id
 }
 
 output "aks_private_fqdn" {
@@ -18,8 +18,8 @@ output "aks_kube_config" {
   value = azurerm_kubernetes_cluster.k8s.kube_config_raw
 }
 
-output "bastion_acr_pe" {
-  value = azurerm_private_endpoint.bastion_acr_pe
+output "ado_acr_pe" {
+  value = azurerm_private_endpoint.ado_acr_pe
 }
 
 output "aks_acr_pe" {

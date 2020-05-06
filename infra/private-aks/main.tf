@@ -11,7 +11,7 @@ resource "azurerm_resource_group" "k8s" {
 
   lifecycle {
     ignore_changes = [
-      tags["created_on"],
+      tags["created"],
     ]
   }
 }
@@ -32,7 +32,7 @@ resource "azurerm_virtual_network" "k8s" {
   
   lifecycle {
     ignore_changes = [
-      tags["created_on"],
+      tags["created"],
     ]
   }
 }
@@ -78,7 +78,7 @@ resource "azurerm_log_analytics_workspace" "monitor" {
   
   lifecycle {
     ignore_changes = [
-      tags["created_on"],
+      tags["created"],
     ]
   }
 }
@@ -114,7 +114,7 @@ resource "azurerm_container_registry" "acr" {
   
   lifecycle {
     ignore_changes = [
-      tags["created_on"],
+      tags["created"],
     ]
   }
 }
@@ -361,7 +361,7 @@ resource "azurerm_kubernetes_cluster" "k8s" {
     # Current open bug related to updating AKS: https://github.com/terraform-providers/terraform-provider-azurerm/issues/6525 
     ignore_changes = [
       network_profile,
-      tags["created_on"]
+      tags["created"]
     ]
   }
 }
@@ -402,7 +402,7 @@ resource "azurerm_private_endpoint" "ado_aks_pe" {
   
   lifecycle {
     ignore_changes = [
-      tags["created_on"],
+      tags["created"],
     ]
   }
 }
