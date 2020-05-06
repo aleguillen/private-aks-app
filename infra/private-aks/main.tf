@@ -360,7 +360,7 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   lifecycle {
     # Current open bug related to updating AKS: https://github.com/terraform-providers/terraform-provider-azurerm/issues/6525 
     ignore_changes = [
-      network_profile,
+      network_profile["load_balancer_profile"],
       tags["created"]
     ]
   }
