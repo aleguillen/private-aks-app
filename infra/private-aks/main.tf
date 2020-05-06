@@ -302,6 +302,18 @@ resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr_aks"
   virtual_network_id    = azurerm_virtual_network.k8s.id
 }
 
+
+##
+# CREATE: AKS Cluster Outbound Public IP
+##
+resource "azurerm_public_ip" "k8s" {
+  name                = "${local.aks_name}-ip"
+  resource_group_name = azurerm_resource_group.k8s.name
+  location            = azurerm_resource_group.k8s.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
 ##
 # CREATE: AKS Cluster
 ##
@@ -332,6 +344,10 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   network_profile {
     network_plugin = "kubenet"
     load_balancer_sku = "standard"
+    
+    load_balancer_profile {
+      outbound_ip_address_ids = [ "${azurerm_public_ip.k8s.id}" ]
+    }
 
     docker_bridge_cidr = "172.17.0.1/16"
     pod_cidr = "10.244.0.0/16"
@@ -358,9 +374,7 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   )
 
   lifecycle {
-    # Current open bug related to updating AKS: https://github.com/terraform-providers/terraform-provider-azurerm/issues/6525 
     ignore_changes = [
-      network_profile["load_balancer_profile"],
       tags["created"]
     ]
   }
