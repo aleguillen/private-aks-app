@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 0.12" 
   
   required_providers {
-    azurerm  = "~> 2.5"
+    azurerm  = "~> 2.7.0"
     null     = "~> 2.1"
     random   = "~> 2.2"
   }
@@ -11,6 +11,5 @@ terraform {
 }
 
 provider "azurerm" {
-    version = "~> 2.7"
     features {}
 }
