@@ -130,6 +130,7 @@ stages:
           displayName: 'Terraform : init'
           inputs:
             workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra/private-aks'
+            commandOptions: '-reconfigure'
             backendServiceArm: ${{ variables.ado_service_connection_name }}
             backendAzureRmResourceGroupName: '$(terraformstoragerg)'
             backendAzureRmStorageAccountName: '$(terraformstorageaccount)'
