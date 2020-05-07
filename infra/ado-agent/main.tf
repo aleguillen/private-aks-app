@@ -407,6 +407,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "ado" {
   upgrade_mode          = "Manual"
   overprovision = false 
 
+  zones =  = [1, 2, 3]
+
   computer_name_prefix  = local.ado_vm_computer_name
   admin_username = var.ado_vm_username
   disable_password_authentication = length(var.ado_vm_password) > 0 ? false : true
