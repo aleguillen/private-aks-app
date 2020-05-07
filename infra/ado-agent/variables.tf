@@ -49,6 +49,18 @@ variable "ado_vm_password" {
   default     = ""
 }
 
+variable "vm_image_id" {
+  type        = string
+  description = "The VM Image Id to use for the VM or VMSS."
+  default     = ""
+}
+
+variable "vm_image_ref" {
+  type        = map(string)
+  description = "The VM Image Id to use for the VM or VMSS."
+  default     = {}
+}
+
 variable "ado_server_url" {
   type        = string
   description = "Azure DevOps Server URL."

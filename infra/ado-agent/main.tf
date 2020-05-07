@@ -282,7 +282,7 @@ data "template_file" "cloudinit" {
     proxy_url = length(var.ado_proxy_url) > 0 ? var.ado_proxy_url : ""
     proxy_username = length(var.ado_proxy_username) > 0 ? var.ado_proxy_username : ""
     proxy_password = length(var.ado_proxy_password) > 0 ? var.ado_proxy_password : ""
-    proxy_bypass_b64 = base64encode(length(var.ado_proxy_bypass_list) > 0 ? join("\n", var.ado_proxy_bypass_list) : "")
+    proxy_bypass = length(var.ado_proxy_bypass_list) > 0 ? join("\\n", var.ado_proxy_bypass_list) : ""
   }
 }
 
@@ -362,15 +362,19 @@ resource "azurerm_linux_virtual_machine" "ado" {
     storage_account_type = "Standard_LRS"
   }
 
-  # if using a custom image specify source_image_id instead of source_image_reference
-  # source_image_id = ""
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
+  # If vm_image_id is specified will use this instead of source_image_reference default settings
+  source_image_id =  length(var.vm_image_id) > 0 ? var.vm_image_id : null
+
+  dynamic "source_image_reference" {
+    for_each = length(var.vm_image_id) > 0 ? [] : [var.vm_image_ref]
+    content {
+      publisher = lookup(var.vm_image_ref, "publisher", "Canonical")
+      offer     = lookup(var.vm_image_ref, "offer", "UbuntuServer")
+      sku       = lookup(var.vm_image_ref, "sku", "18.04-LTS")
+      version   = lookup(var.vm_image_ref, "version", "latest")
+    }
   }
-  
+
   identity {
     type = "SystemAssigned"
   }
@@ -425,13 +429,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "ado" {
   # Cloud Init Config file
   custom_data = data.template_cloudinit_config.config.rendered
 
-  # if using a custom image specify source_image_id instead of source_image_reference
-  # source_image_id = ""
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
+  # If vm_image_id is specified will use this instead of source_image_reference default settings
+  source_image_id =  length(var.vm_image_id) > 0 ? var.vm_image_id : null
+
+  dynamic "source_image_reference" {
+    for_each = length(var.vm_image_id) > 0 ? [] : [var.vm_image_id]
+    content {
+      publisher = "Canonical"
+      offer     = "UbuntuServer"
+      sku       = "18.04-LTS"
+      version   = "latest"
+    }
   }
 
   os_disk {

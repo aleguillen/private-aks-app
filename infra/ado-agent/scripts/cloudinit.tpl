@@ -55,11 +55,11 @@ runcmd:
  # Downloding and installing VSTS agent package
  #
  - echo "[$(date +%F_%T)] Downloading Agent"
- - chmod ugo+rwx -R /azagent
+ - chmod ugo+rwx -R /adoagent
  - curl -fkSL -o vsts-agent.tar.gz https://vstsagentpackage.azureedge.net/agent/2.164.8/vsts-agent-linux-x64-2.164.8.tar.gz
  - echo "[$(date +%F_%T)] Extracting Agent"
  - tar -zxvf vsts-agent.tar.gz 
- - chmod ugo+rwx -R /azagent
+ - chmod ugo+rwx -R /adoagent
  - echo "[$(date +%F_%T)] Running installdependencies.sh"
  - ./bin/installdependencies.sh
  - echo "[$(date +%F_%T)] Running config.sh"
@@ -67,13 +67,7 @@ runcmd:
  - echo "[$(date +%F_%T)] Running scv.sh"
  - ./svc.sh install
  - ./svc.sh start
-
-write_files:
-- encoding: b64
-  content: ${proxy_bypass_b64}
-  owner: root:root
-  path: /azagent/.proxybypass
-  permissions: '0755'
+ - STR=$'${proxy_bypass}'; echo "$STR" > /adoagent/.proxybypass
 
 power_state:
  delay: "+1"

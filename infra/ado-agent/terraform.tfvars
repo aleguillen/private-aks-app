@@ -10,6 +10,10 @@ ado_vm_username = "__vm_username__"
 
 ado_vm_password = "__vm_password__"
 
+vm_image_id = "__vm_image_id__"
+
+vm_image_ref = __vm_image_ref__
+
 ado_server_url = "__ado_server_url__"
 
 ado_pat_token = "__ado_pat_token__"

@@ -35,14 +35,27 @@ vm_username='adoadmin'
 vm_password='<replace-me>'
 
 # If TRUE - Create VM Scale Set instead of Single VM.
-ado_vmss_enabled = false
-ado_vmss_instances = "1"
+ado_vmss_enabled=false
+ado_vmss_instances="1"
 
 # Set VM Size
-ado_vm_size = "Standard_DS1_v2"
+ado_vm_size="Standard_DS1_v2"
+
+# Set Image ID location
+# Retrieve it from CLI or specify it as string
+#vm_image_id=$(az sig image-version show --gallery-image-definition <image-def> --gallery-image-version <image-version> --gallery-name <gallery-name> --resource-group <resource-group> --query id -o tsv)
+vm_image_id=""
+
+# If no image id is set. Set image reference.
+vm_image_ref='{
+    publisher = "Canonical",
+    offer     = "UbuntuServer",
+    sku       = "18.04-LTS",
+    version   = "latest"
+}'
 
 # List of Subscription Ids for Agent Pool Role Assigment Access
-ado_subscription_ids_access = ["<replace-me>"]
+ado_subscription_ids_access=["<replace-me>"]
 
 # Azure DevOps PAT token to configure Self-Hosted Agent
 ado_pat_token='<replace-me>'
@@ -76,11 +89,11 @@ ado_repo_branch='master'
 ################### Setup #######################
 #################################################
 
-# Make sure your Azure DevOps defaults include the organization and project from the command prompt
-az devops configure --defaults organization=$ORG_URL project=$PROJECT_NAME
-
 # Sign in to the Azure CLI
 az login
+
+# Make sure your Azure DevOps defaults include the organization and project from the command prompt
+az devops configure --defaults organization=$ORG_URL project=$PROJECT_NAME
 
 # Create ADO Variable group with non-secret variables
 az pipelines variable-group create \
@@ -92,6 +105,8 @@ location=$location \
 prefix=$prefix \
 common_tags="$common_tags" \
 vm_username=$vm_username \
+vm_image_id=$vm_image_id \
+vm_image_ref="$vm_image_ref" \
 ado_vmss_enabled=$ado_vmss_enabled \
 ado_vmss_instances=$ado_vmss_instances \
 ado_vm_size=$ado_vm_size \
