@@ -282,7 +282,7 @@ data "template_file" "cloudinit" {
     proxy_url = length(var.ado_proxy_url) > 0 ? var.ado_proxy_url : null
     proxy_username = length(var.ado_proxy_username) > 0 ? var.ado_proxy_username : null
     proxy_password = length(var.ado_proxy_password) > 0 ? var.ado_proxy_password : null
-    proxy_bypass_b64 = base64encode(replace(join("\n", var.ado_proxy_bypass_list), ".", "\."))
+    proxy_bypass_b64 = base64encode(join("\n", var.ado_proxy_bypass_list))
   }
 }
 
@@ -407,7 +407,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "ado" {
   upgrade_mode          = "Manual"
   overprovision = false 
 
-  zones =  = [1, 2, 3]
+  zones = [1, 2, 3]
 
   computer_name_prefix  = local.ado_vm_computer_name
   admin_username = var.ado_vm_username
