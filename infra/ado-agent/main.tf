@@ -279,10 +279,10 @@ data "template_file" "cloudinit" {
     pat_token = var.ado_pat_token
     pool_name = var.ado_pool_name
     vm_admin = var.ado_vm_username
-    proxy_url = length(var.ado_proxy_url) > 0 ? var.ado_proxy_url : null
-    proxy_username = length(var.ado_proxy_username) > 0 ? var.ado_proxy_username : null
-    proxy_password = length(var.ado_proxy_password) > 0 ? var.ado_proxy_password : null
-    proxy_bypass_b64 = base64encode(join("\n", var.ado_proxy_bypass_list))
+    proxy_url = length(var.ado_proxy_url) > 0 ? var.ado_proxy_url : ""
+    proxy_username = length(var.ado_proxy_username) > 0 ? var.ado_proxy_username : ""
+    proxy_password = length(var.ado_proxy_password) > 0 ? var.ado_proxy_password : ""
+    proxy_bypass_b64 = base64encode(length(var.ado_proxy_bypass_list) > 0 ? join("\n", var.ado_proxy_bypass_list) : "")
   }
 }
 
