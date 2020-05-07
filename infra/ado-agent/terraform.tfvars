@@ -23,3 +23,11 @@ ado_vm_size = "__ado_vm_size__"
 ado_vmss_instances = "__ado_vmss_instances__"
 
 ado_subscription_ids = __ado_subscription_ids__
+
+ado_proxy_url = "__ado_proxy_url__"
+
+ado_proxy_username = "__ado_proxy_username__"
+
+ado_proxy_password = "__ado_proxy_password__"
+
+ado_proxy_bypass_list = __ado_proxy_bypass_list__

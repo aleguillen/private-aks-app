@@ -71,3 +71,26 @@ variable "ado_subscription_ids" {
   default = []
 }
 
+variable "ado_proxy_url" {
+  type        = string
+  description = "Specify proxy URL for Azure DevOps Self-Hosted Agent."
+  default = ""
+}
+
+variable "ado_proxy_username" {
+  type        = string
+  description = "Specify proxy URL Username for Azure DevOps Self-Hosted Agent."
+  default = ""
+}
+
+variable "ado_proxy_password" {
+  type        = string
+  description = "Specify proxy URL Password for Azure DevOps Self-Hosted Agent."
+  default = ""
+}
+
+variable "ado_proxy_bypass_list" {
+  type        = list(string)
+  description = "Specify proxy bypass URLs (in ECMAScript syntax)."
+  default = []
+}

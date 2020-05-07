@@ -50,6 +50,15 @@ ado_pat_token='<replace-me>'
 # Agent Pool Nanme
 ado_pool_name='Default'
 
+# Agent Pool Proxy settings - modify if applicable
+ado_proxy_url=""
+
+ado_proxy_username=""
+
+ado_proxy_password=""
+
+ado_proxy_bypass_list=[]
+
 # ADO variable group name - if you change this name you will need to change azure-pipelines.yml file.
 ado_var_group_name='ado_dev_vars'
 
@@ -87,6 +96,10 @@ ado_vmss_enabled=$ado_vmss_enabled \
 ado_vmss_instances=$ado_vmss_instances \
 ado_vm_size=$ado_vm_size \
 ado_subscription_ids=$ado_subscription_ids_access \
+ado_proxy_url=$ado_proxy_url \
+ado_proxy_username=$ado_proxy_username \
+ado_proxy_password=$ado_proxy_password \
+ado_proxy_bypass_list=$ado_proxy_bypass_list \
 ado_pool_name=$ado_pool_name \
 resource_group='$(prefix)-$(environment)-rg' \
 storagekey='PipelineWillGetThisValueRuntime' \
