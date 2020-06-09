@@ -431,14 +431,14 @@ resource "azurerm_linux_virtual_machine_scale_set" "ado" {
 
   # If vm_image_id is specified will use this instead of source_image_reference default settings
   source_image_id =  length(var.vm_image_id) > 0 ? var.vm_image_id : null
-
+  
   dynamic "source_image_reference" {
-    for_each = length(var.vm_image_id) > 0 ? [] : [var.vm_image_id]
+    for_each = length(var.vm_image_id) > 0 ? [] : [var.vm_image_ref]
     content {
-      publisher = "Canonical"
-      offer     = "UbuntuServer"
-      sku       = "18.04-LTS"
-      version   = "latest"
+      publisher = lookup(var.vm_image_ref, "publisher", "Canonical")
+      offer     = lookup(var.vm_image_ref, "offer", "UbuntuServer")
+      sku       = lookup(var.vm_image_ref, "sku", "18.04-LTS")
+      version   = lookup(var.vm_image_ref, "version", "latest")
     }
   }
 

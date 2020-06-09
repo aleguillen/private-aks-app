@@ -109,10 +109,9 @@ To walk through a quick deployment of this application, see the AKS [quick start
         
         # Get other Service Principal details
         APP_ID=$(az ad app list --display-name $APP_NAME --query [].appId -o tsv)
-        SP_ID=$(az ad sp list --display-name $APP_NAME --query "objectId" -o tsv)
         
         # Create Service Connection in Azure DevOps to Azure RM.
-        az devops service-endpoint azurerm create --azure-rm-service-principal-id $SP_ID --azure-rm-subscription-id $SUBSCRIPTION_ID --azure-rm-subscription-name $SUBSCRIPTION_NAME --azure-rm-tenant-id $TENANT_ID --name "Azure Subscription"
+        az devops service-endpoint azurerm create --azure-rm-service-principal-id $APP_ID --azure-rm-subscription-id $SUBSCRIPTION_ID --azure-rm-subscription-name $SUBSCRIPTION_NAME --azure-rm-tenant-id $TENANT_ID --name "Azure Subscription"
         ```
     * Azure DevOps Portal:
         * Connection type: **Azure Resource Manager**.
