@@ -36,7 +36,8 @@ common_tags='{
 }'
 
 # AKS Version
-aks_version='1.15.7'
+# az aks get-versions --location $location --output table
+aks_version='1.16.9'
 
 # AKS Service Principal Client ID (AppId)
 aks_service_principal_client_id='<replace-me>'
@@ -140,7 +141,7 @@ terraformstorageblobname='$(prefix)/$(environment)/terraform.tfstate' \
 build_id='$(Build.BuildId)'
 
 # Create Variable Secrets
-VAR_GROUP_ID=$(az pipelines variable-group list --group-name aks_dev_vars --top 1 --query "[0].id" -o tsv)
+VAR_GROUP_ID=$(az pipelines variable-group list --group-name $ado_var_group_name --top 1 --query "[0].id" -o tsv)
 az pipelines variable-group variable create \
 --group-id $VAR_GROUP_ID \
 --secret true \
@@ -152,4 +153,3 @@ az pipelines create --name 'Private.AKS.Infra.CI.CD' --yaml-path '/pipelines/inf
 
 # Create Application Pipeline
 az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/pipelines/app/azure-pipelines.yml' --repository $ado_repo --repository-type tfsgit --branch $ado_repo_branch
-
