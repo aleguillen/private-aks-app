@@ -13,7 +13,7 @@
 #     1. You are referencing this template from an ado pipeline
 
 # .NOTES
-#     File Name      : azure-pipelines.yml
+#     File Name      : app-azure-pipelines.yml
 #     Prerequisite   : ADO Multi-Stage Yaml Pipeline
 # -----------------------------------------------------------------------------
 
