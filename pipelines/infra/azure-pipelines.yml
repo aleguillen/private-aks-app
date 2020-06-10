@@ -27,10 +27,12 @@ trigger:
     - master
   paths:
     include:
-      - infra/private-aks/*
+      - infra/*
+      - pipelines/infra/*
     exclude:
-      - infra/private-aks/README.md
-      - infra/private-aks/azure-pipelines.sh
+      - /**/*.md
+      - /**/*.sh
+      - /**/LICENSE
 
 variables:
   - group: aks_dev_vars
@@ -38,7 +40,7 @@ variables:
   - name: ado_agent_pool
     value: 'Default'
   - name: ado_service_connection_name
-    value: 'Azure Subscription'
+    value: 'sc-private-aks-app-azure-subscription'
 
 stages: 
   - stage: Build
@@ -52,8 +54,8 @@ stages:
         - task: CopyFiles@2
           displayName: 'Copy Files to: $(build.artifactstagingdirectory)/private-aks'
           inputs:
-            SourceFolder: 'infra/private-aks'
-            TargetFolder: '$(build.artifactstagingdirectory)/private-aks'
+            SourceFolder: 'infra'
+            TargetFolder: '$(build.artifactstagingdirectory)'
 
         - task: PublishBuildArtifacts@1
           displayName: 'Publish Artifact: infra'
@@ -116,7 +118,7 @@ stages:
         - task: qetza.replacetokens.replacetokens-task.replacetokens@3
           displayName: 'Replace tokens in terraform vars file'
           inputs:
-            targetFiles: '**/*.tfvars'
+            targetFiles: '$(System.DefaultWorkingDirectory)/_artifacts/infra/*.tfvars'
             escapeType: none
             tokenPrefix: '__'
             tokenSuffix: '__'
@@ -129,7 +131,7 @@ stages:
         - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
           displayName: 'Terraform : init'
           inputs:
-            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra/private-aks'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
             commandOptions: '-reconfigure'
             backendServiceArm: ${{ variables.ado_service_connection_name }}
             backendAzureRmResourceGroupName: '$(terraformstoragerg)'
@@ -141,7 +143,7 @@ stages:
           displayName: 'Terraform : plan'
           inputs:
             command: plan
-            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra//private-aks'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
             environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
             backendServiceArm: ${{ variables.ado_service_connection_name }}
             backendAzureRmResourceGroupName: '$(terraformstoragerg)'
@@ -153,7 +155,7 @@ stages:
           displayName: 'Terraform : apply'
           inputs:
             command: apply
-            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra/private-aks'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/_artifacts/infra'
             commandOptions: '-auto-approve'
             environmentServiceNameAzureRM: ${{ variables.ado_service_connection_name }}
             backendServiceArm: ${{ variables.ado_service_connection_name }}

@@ -68,6 +68,10 @@ terraformstoragecontainer='terraform'
 # ADO variable group name - if you change this name you will need to change azure-pipelines.yml file.
 ado_var_group_name='aks_dev_vars'
 
+# Azure Repo name for pipeline.
+ado_repo=$PROJECT_NAME
+ado_repo_branch='master'
+
 #################################################
 ################### Setup #######################
 #################################################
@@ -144,7 +148,8 @@ az pipelines variable-group variable create \
 --value $aks_service_principal_client_secret
 
 # Create Infra Pipeline
-az pipelines create --name 'Private.AKS.Infra.CI.CD' --yaml-path '/pipelines/infra-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
+az pipelines create --name 'Private.AKS.Infra.CI.CD' --yaml-path '/pipelines/infra/azure-pipelines.yml' --repository $ado_repo --repository-type tfsgit --branch $ado_repo_branch
 
 # Create Application Pipeline
-az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/pipelines/app-azure-pipelines.yml' --repository private-aks-app --repository-type tfsgit --branch master
+az pipelines create --name 'Private.AKS.App.CI.CD' --yaml-path '/pipelines/app/azure-pipelines.yml' --repository $ado_repo --repository-type tfsgit --branch $ado_repo_branch
+

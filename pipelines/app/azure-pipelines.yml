@@ -13,7 +13,7 @@
 #     1. You are referencing this template from an ado pipeline
 
 # .NOTES
-#     File Name      : app-azure-pipelines.yml
+#     File Name      : azure-pipelines.yml
 #     Prerequisite   : ADO Multi-Stage Yaml Pipeline
 # -----------------------------------------------------------------------------
 
@@ -26,9 +26,11 @@ trigger:
   paths:
     include:
       - app/*
+      - pipelines/app/*
     exclude:
-      - app/README.md
-      - app/LICENSE
+      - /**/*.md
+      - /**/*.sh
+      - /**/LICENSE
 
 variables:
   - group: aks_dev_vars
@@ -36,7 +38,7 @@ variables:
   - name: ado_agent_pool
     value: 'Default'
   - name: ado_service_connection_name
-    value: 'Azure Subscription'
+    value: 'sc-private-aks-app-azure-subscription'
 
 stages: 
   - stage: Build
