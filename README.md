@@ -31,6 +31,8 @@ Deploy ACR with a private endpoint. Access ingress controller through private en
     ```
 * Git to manage your repository locally.
     *  See how to install [here](https://git-scm.com/downloads).
+* Azure DevOps Self Hosted Agents.
+    * See how to setup your Self Hosted Agents in Azure as shown in the diagram below <a href="https://github.com/aleguillen/azure-devops-self-hosted-agent" target="_blank">here</a>.
 
 ## Infrastructure
 
@@ -42,7 +44,7 @@ The purpose of this sample is to create an end to end solution to connect to app
 
 This is a sample architecture. Let's break it down:
 
-### [Azure DevOps Deployment Overview](https://github.com/aleguillen/azure-devops-self-hosted-agent)
+### <a href="https://github.com/aleguillen/azure-devops-self-hosted-agent" target="_blank">Azure DevOps Deployment Overview</a>.
 
 * Connects to on-premises via [Azure ExpressRoute](https://azure.microsoft.com/en-us/services/expressroute/) - this is not required or configured in this sample, however it's meant to show case the availability for access your private application from on-premises due to the ExpressRoute connection.
 * ADO Server - this VM is configured as a [Azure Pipeline Self-hosted Agent](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/agents) within the network that can connect privately to Azure Container Registry and AKS cluster.
