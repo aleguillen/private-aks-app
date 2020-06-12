@@ -37,7 +37,7 @@ common_tags='{
 
 # AKS Version
 # az aks get-versions --location $location --output table
-aks_version='1.16.9'
+aks_version='1.15.11'
 
 # AKS Service Principal Client ID (AppId)
 aks_service_principal_client_id='<replace-me>'
