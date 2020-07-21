@@ -1,0 +1,45 @@
+# -----------------------------------------------------------------------------
+# .SYNOPSIS
+#   This is the General Variables definition.   
+#   Do not set secret values as plain text in this file.
+
+# .DESCRIPTION
+#   This environment variables file setup pipeline input variables:
+#   For more information on how to use yaml schema variables: 
+#     1. https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#variables
+#     2. https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=azure-devops#variable-reuse
+
+# .ASSUMPTIONS:
+#     1. You are referencing this template from an ado pipeline
+
+# .NOTES
+#     File Name      : variables.yml
+#     Prerequisite   : ADO Multi-Stage Yaml Pipeline
+# -----------------------------------------------------------------------------
+
+variables:
+
+  # -----------------------------------------------------------------------------
+  # ADO General Variables
+  # -----------------------------------------------------------------------------
+
+  # Azure Service Connection Name - If modified please update Connection Name.
+  ado_service_connection_name: 'sc-private-aks-app-azure-subscription' 
+
+  # -----------------------------------------------------------------------------
+  # General Azure Variables
+  # -----------------------------------------------------------------------------
+
+  # Environment Name: Most common examples: DEV, ACC, PRD, QA (Abbreviate if possible)
+  environment: 'prd'
+
+  # -----------------------------------------------------------------------------
+  # AKS / Container Registry Variables
+  # -----------------------------------------------------------------------------
+
+  # AKS Service Principal Client ID (AppId)
+  aks_service_principal_client_id: 'e6c4ab13-f3b3-4f0d-9c1e-ed97d0996527'
+
+  # AKS Service Principal Object ID
+  aks_service_principal_id: 'f7b04a27-1118-4eb3-a09c-4b541a268836'
+
